@@ -57,5 +57,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
+  // Programmatic couple-pair pages: C(27, 2) = 351 unique canonical pairs.
+  // Only emit the alphabetical (canonical) order — the route is SSG-only
+  // with `dynamicParams: false` so non-canonical URLs 404. Lower priority
+  // than /type details because they are long-tail targets.
+  const slugs = sbtiTypes.map((t) => t.slug).sort();
+  for (let i = 0; i < slugs.length; i += 1) {
+    for (let j = i + 1; j < slugs.length; j += 1) {
+      entries.push({
+        url: `${SITE_URL}/match/${slugs[i]}/${slugs[j]}`,
+        lastModified: now,
+        changeFrequency: 'monthly',
+        priority: 0.7,
+      });
+    }
+  }
+
   return entries;
 }
