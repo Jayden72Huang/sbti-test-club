@@ -52,7 +52,11 @@ export const metadata: Metadata = {
   openGraph: rootMetadata.openGraph,
   twitter: rootMetadata.twitter,
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/logo.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    apple: '/logo.png',
   },
 };
 

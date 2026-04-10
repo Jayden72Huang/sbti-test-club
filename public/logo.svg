@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="SBTI Test Club">
+  <defs>
+    <linearGradient id="sbti-grad" x1="12" y1="12" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+    <radialGradient id="sbti-glow" cx="32" cy="32" r="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#09090b"/>
+  <rect width="64" height="64" rx="14" fill="url(#sbti-glow)"/>
+  <path
+    d="M46 18 L22 18 C16 18 16 30 22 30 L42 30 C48 30 48 46 42 46 L18 46"
+    stroke="url(#sbti-grad)"
+    stroke-width="7"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

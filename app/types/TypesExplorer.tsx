@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/cn';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
+import { TypePoster } from '@/components/shared/TypePoster';
 
 export type GroupKey = 'self' | 'emotion' | 'attitude' | 'action' | 'social';
 
@@ -117,7 +118,7 @@ export default function TypesExplorer({
       )}
 
       {/* Type grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
         {filteredTypes.map((t) => (
           <Link key={t.code} href={`/type/${t.slug}`}>
             <Card
@@ -128,19 +129,23 @@ export default function TypesExplorer({
             >
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="text-5xl group-hover:scale-110 transition-transform">
-                    {t.emoji}
-                  </div>
+                  <TypePoster
+                    code={t.code}
+                    nameCN={t.nameCN}
+                    fallbackEmoji={t.emoji}
+                    sizes="(max-width: 640px) 45vw, 220px"
+                    className="size-32 sm:size-36 md:size-40 rounded-2xl ring-1 ring-white/10 group-hover:scale-105 transition-transform"
+                  />
                   {t.isSpecial && (
-                    <Badge variant="destructive" className="text-[10px]">
+                    <Badge variant="destructive" className="text-[11px]">
                       {t.isSpecial === 'fallback' ? '兜底' : '隐藏'}
                     </Badge>
                   )}
                 </div>
-                <CardTitle className="text-lg mt-2">{t.nameCN}</CardTitle>
-                <p className="text-xs text-zinc-500 font-mono">{t.code}</p>
+                <CardTitle className="text-2xl mt-4">{t.nameCN}</CardTitle>
+                <p className="text-sm text-zinc-500 font-mono mt-1">{t.code}</p>
               </CardHeader>
-              <CardContent className="text-xs text-zinc-400 line-clamp-2">
+              <CardContent className="text-sm text-zinc-400 line-clamp-2 leading-relaxed">
                 {t.taglineZh}
               </CardContent>
             </Card>

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/cn';
 import { LocaleSwitch } from '@/components/shared/LocaleSwitch';
@@ -50,12 +51,14 @@ export function Nav({ localePrefix = '', links, className }: NavProps) {
           href={homeHref}
           className="flex items-center gap-2 font-black tracking-tight text-white text-lg"
         >
-          <span
-            aria-hidden
-            className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/40"
-          >
-            S
-          </span>
+          <Image
+            src="/logo.svg"
+            alt="SBTI Club"
+            width={32}
+            height={32}
+            priority
+            className="h-8 w-8 rounded-xl shadow-lg shadow-purple-500/40"
+          />
           <span>SBTI Club</span>
         </Link>
 

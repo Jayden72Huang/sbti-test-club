@@ -29,6 +29,7 @@ import { Progress } from '@/components/ui/Progress';
 import { RadarChart, type RadarLevel } from '@/components/shared/RadarChart';
 import { ShareCard } from '@/components/shared/ShareCard';
 import { TypeCard } from '@/components/shared/TypeCard';
+import { TypePoster } from '@/components/shared/TypePoster';
 import { cn } from '@/lib/cn';
 
 // Fallback metadata used when data/sbti-types.ts isn't available yet or when
@@ -116,14 +117,34 @@ function buildRadarData(
   return { data, labels };
 }
 
+/**
+ * Flattened shape used by the "天选配偶" section. We can't reuse enrichType
+ * because the source `tagline` on data/sbti-types is `{ zh, en }`, and
+ * enrichType intentionally only passes through string taglines.
+ */
+interface DestinedType {
+  code: string;
+  slug: string;
+  nameCN: string;
+  nameEN: string;
+  emoji: string;
+  color: string;
+  tagline: string;
+}
+
 function useMatchResult(
   scores: DimensionScores | null,
   drunk: boolean,
-): { state: 'loading' | 'ready' | 'raw-only'; result: MatchResult | null } {
+): {
+  state: 'loading' | 'ready' | 'raw-only';
+  result: MatchResult | null;
+  destinedTypes: DestinedType[];
+} {
   const [state, setState] = React.useState<
     'loading' | 'ready' | 'raw-only'
   >('loading');
   const [result, setResult] = React.useState<MatchResult | null>(null);
+  const [destinedTypes, setDestinedTypes] = React.useState<DestinedType[]>([]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -156,6 +177,38 @@ function useMatchResult(
           });
           setResult(match);
           setState('ready');
+
+          // Resolve compatibleTypes (the "天选配偶" list) against the full
+          // data set so we can display real names/taglines rather than the
+          // fallback metadata enrichType uses.
+          const byCode: Record<string, unknown> = {};
+          for (const t of allTypes as unknown as Array<Record<string, unknown>>) {
+            const code = t?.code;
+            if (typeof code === 'string') byCode[code] = t;
+          }
+          const primary = match.type as unknown as Record<string, unknown>;
+          const compatCodes = Array.isArray(primary?.compatibleTypes)
+            ? (primary.compatibleTypes as string[])
+            : [];
+          const destined = compatCodes
+            .map((code) => byCode[code] as Record<string, unknown> | undefined)
+            .filter((t): t is Record<string, unknown> => Boolean(t))
+            .map((t): DestinedType => {
+              const tagline = t.tagline as { zh?: string } | string | undefined;
+              return {
+                code: String(t.code ?? ''),
+                slug: String(t.slug ?? String(t.code ?? '').toLowerCase()),
+                nameCN: String(t.nameCN ?? ''),
+                nameEN: String(t.nameEN ?? ''),
+                emoji: String(t.emoji ?? '✨'),
+                color: String(t.color ?? '#a855f7'),
+                tagline:
+                  typeof tagline === 'string'
+                    ? tagline
+                    : tagline?.zh ?? '',
+              };
+            });
+          setDestinedTypes(destined);
         } catch (err) {
           console.error('[SBTI] matchSbtiType failed', err);
           setState('raw-only');
@@ -170,7 +223,7 @@ function useMatchResult(
     };
   }, [scores, drunk]);
 
-  return { state, result };
+  return { state, result, destinedTypes };
 }
 
 export function ResultView() {
@@ -183,7 +236,7 @@ export function ResultView() {
     [patternParam],
   );
 
-  const { state, result } = useMatchResult(scores, drunkParam);
+  const { state, result, destinedTypes } = useMatchResult(scores, drunkParam);
 
   if (!scores) {
     return (
@@ -222,11 +275,15 @@ export function ResultView() {
         <Badge variant="default" className="mx-auto">
           你的 SBTI 结果
         </Badge>
-        <div
-          aria-hidden
-          className="mt-5 text-[88px] leading-none drop-shadow-[0_0_40px_rgba(168,85,247,0.45)]"
-        >
-          {primaryType.emoji}
+        <div className="mx-auto mt-5 w-fit drop-shadow-[0_0_40px_rgba(168,85,247,0.45)]">
+          <TypePoster
+            code={primaryCode}
+            nameCN={primaryType.nameCN}
+            fallbackEmoji={primaryType.emoji}
+            priority
+            sizes="(max-width: 640px) 140px, 180px"
+            className="size-32 sm:size-40 rounded-3xl ring-1 ring-white/10"
+          />
         </div>
         <h1 className="mt-2 text-4xl sm:text-5xl font-black tracking-tight text-white">
           {primaryType.nameCN}
@@ -259,13 +316,66 @@ export function ResultView() {
 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
           <Button asChild size="lg">
-            <Link href={typeHref}>查看完整解读</Link>
+            <a href="#share">📸 分享结果</a>
           </Button>
           <Button asChild variant="outline" size="lg">
-            <Link href="/match">测测朋友配对</Link>
+            <Link href={`/match?t1=${encodeURIComponent(primaryCode)}`}>
+              💘 情侣配对
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <a href="#destined">✨ 天选配偶</a>
           </Button>
         </div>
+        <div className="mt-4">
+          <Link
+            href={typeHref}
+            className="text-sm font-semibold text-purple-300 hover:text-purple-200"
+          >
+            查看 {primaryType.nameCN} 完整解读 →
+          </Link>
+        </div>
       </section>
+
+      {/* Destined matches — 天选配偶 */}
+      {destinedTypes.length > 0 && (
+        <section id="destined" className="scroll-mt-24">
+          <div className="mb-4">
+            <Badge variant="default">天选配偶 · Destined Matches</Badge>
+            <h2 className="mt-3 text-2xl font-black tracking-tight text-white">
+              {primaryType.nameCN} 最搭的 {destinedTypes.length} 种人
+            </h2>
+            <p className="mt-1 text-sm text-zinc-400">
+              15 维模型里和你最咬合、相处阻力最小的类型。
+            </p>
+          </div>
+          <div
+            className={cn(
+              'grid gap-4',
+              'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+            )}
+          >
+            {destinedTypes.map((t) => (
+              <TypeCard
+                key={t.code}
+                code={t.code}
+                emoji={t.emoji}
+                nameCN={t.nameCN}
+                nameEN={t.nameEN}
+                tagline={t.tagline}
+                color={t.color}
+              />
+            ))}
+          </div>
+          <div className="mt-5 text-center">
+            <Button asChild variant="outline">
+              <Link href={`/match?t1=${encodeURIComponent(primaryCode)}`}>
+                和 TA 做一次配对分析 →
+              </Link>
+            </Button>
+          </div>
+        </section>
+      )}
 
       {/* Radar */}
       <section>
@@ -320,7 +430,7 @@ export function ResultView() {
       )}
 
       {/* Share */}
-      <section>
+      <section id="share" className="scroll-mt-24">
         <div className="mb-4">
           <h2 className="text-2xl font-black tracking-tight text-white">
             分享你的结果

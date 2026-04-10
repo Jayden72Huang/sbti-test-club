@@ -13,6 +13,7 @@ import {
 } from '@/lib/schema';
 
 import { SchemaJsonLd } from '@/components/shared/SchemaJsonLd';
+import { TypePoster } from '@/components/shared/TypePoster';
 import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
 import { Accordion } from '@/components/ui/Accordion';
@@ -215,12 +216,13 @@ export default function HomePage() {
                 }}
               >
                 <div className="flex items-start justify-between">
-                  <span
-                    aria-hidden
-                    className="text-3xl leading-none transition-transform duration-300 group-hover:scale-110"
-                  >
-                    {type.emoji}
-                  </span>
+                  <TypePoster
+                    code={type.code}
+                    nameCN={type.nameCN}
+                    fallbackEmoji={type.emoji}
+                    sizes="(max-width: 640px) 25vw, 120px"
+                    className="size-14 sm:size-16 rounded-xl ring-1 ring-white/10 transition-transform duration-300 group-hover:scale-110"
+                  />
                   <span
                     className="rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-white"
                     style={{ backgroundColor: type.color }}

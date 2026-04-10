@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/cn';
+import { TypePoster } from '@/components/shared/TypePoster';
 
 export interface ShareCardProps {
   /** SBTI type code, e.g. 'HHHH'. */
@@ -60,12 +61,13 @@ export function ShareCard({
         </div>
 
         <div className="flex flex-col items-center text-center">
-          <div
-            aria-hidden
-            className="text-[96px] leading-none drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]"
-          >
-            {emoji}
-          </div>
+          <TypePoster
+            code={code}
+            nameCN={type}
+            fallbackEmoji={emoji}
+            sizes="(max-width: 640px) 160px, 200px"
+            className="size-32 rounded-3xl ring-1 ring-white/15 drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]"
+          />
           <div className="mt-3 text-4xl font-black tracking-tight">{type}</div>
           {subtitle && (
             <div className="mt-1 text-sm font-medium text-purple-200">

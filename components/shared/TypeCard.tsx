@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/cn';
+import { TypePoster } from '@/components/shared/TypePoster';
 
 export interface TypeCardProps {
   /** SBTI 4-letter code, used for the URL slug. */
@@ -48,12 +49,13 @@ export function TypeCard({
       }}
     >
       <div className="flex items-start justify-between">
-        <span
-          aria-hidden
-          className="text-5xl leading-none transition-transform duration-300 group-hover:scale-110"
-        >
-          {emoji}
-        </span>
+        <TypePoster
+          code={code}
+          nameCN={nameCN}
+          fallbackEmoji={emoji}
+          sizes="(max-width: 640px) 35vw, 120px"
+          className="size-20 rounded-2xl ring-1 ring-white/10 transition-transform duration-300 group-hover:scale-110"
+        />
         <span
           className="rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-white"
           style={{ backgroundColor: color }}

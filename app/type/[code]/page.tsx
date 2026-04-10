@@ -17,6 +17,7 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Accordion } from '@/components/ui/Accordion';
 import { RadarChart } from '@/components/shared/RadarChart';
 import { SchemaJsonLd } from '@/components/shared/SchemaJsonLd';
+import { TypePoster } from '@/components/shared/TypePoster';
 import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
 
@@ -233,38 +234,61 @@ export default async function TypeDetailPage({ params }: PageProps) {
             }}
           />
           <div className="relative mx-auto max-w-5xl px-4 sm:px-6 pt-10 pb-14 sm:pt-14 sm:pb-20">
-            <div className="flex flex-col items-center text-center">
-              <span
-                aria-hidden
-                className="text-7xl sm:text-8xl leading-none drop-shadow-[0_0_40px_rgba(168,85,247,0.35)]"
-              >
-                {type.emoji}
-              </span>
-              <span
-                className="mt-6 rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-[0.2em] text-white"
-                style={{ backgroundColor: type.color }}
-              >
-                SBTI · {type.code}
-              </span>
-              <h1 className="mt-5 text-3xl sm:text-5xl font-black tracking-tight text-white">
-                SBTI {type.code} {type.nameCN} 人格解读
-              </h1>
-              <p className="mt-3 text-base sm:text-lg font-semibold uppercase tracking-wider text-zinc-400">
-                {type.nameEN}
-              </p>
-              <p className="mt-6 max-w-2xl text-lg sm:text-xl text-purple-200 italic">
-                「{type.tagline.zh}」
-              </p>
-              <p className="mt-4 max-w-2xl text-sm sm:text-base text-zinc-400 leading-relaxed">
-                {type.oneLinerCN}
-              </p>
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                <Button asChild size="lg">
-                  <Link href="/test">开始你的 SBTI 测试</Link>
-                </Button>
-                <Button asChild variant="outline" size="lg">
-                  <Link href="/types">查看 27 类型</Link>
-                </Button>
+            <div className="flex flex-col items-center gap-8 text-center md:flex-row md:items-center md:gap-12 md:text-left">
+              {/* Left: poster */}
+              <div className="shrink-0">
+                <TypePoster
+                  code={type.code}
+                  nameCN={type.nameCN}
+                  fallbackEmoji={type.emoji}
+                  priority
+                  sizes="(max-width: 768px) 200px, 320px"
+                  className="size-48 sm:size-56 md:size-72 lg:size-80 rounded-3xl ring-1 ring-white/10 shadow-[0_0_60px_rgba(168,85,247,0.35)]"
+                />
+              </div>
+
+              {/* Right: info */}
+              <div className="flex flex-1 flex-col items-center md:items-start">
+                <span
+                  className="rounded-full px-4 py-1.5 text-xs font-black uppercase tracking-[0.2em] text-white"
+                  style={{ backgroundColor: type.color }}
+                >
+                  SBTI · {type.code}
+                </span>
+                <h1 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white">
+                  {type.code} {type.nameCN} 人格解读
+                </h1>
+                <p className="mt-2 text-base sm:text-lg font-semibold uppercase tracking-wider text-zinc-400">
+                  {type.nameEN}
+                </p>
+
+                <div className="mt-6 w-full max-w-2xl space-y-5 text-left">
+                  <div>
+                    <div className="text-[11px] font-black uppercase tracking-[0.2em] text-purple-400/80">
+                      口头禅 · Catchphrase
+                    </div>
+                    <p className="mt-1.5 text-lg sm:text-xl text-purple-200 italic">
+                      「{type.tagline.zh}」
+                    </p>
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500">
+                      人格描述 · One-liner
+                    </div>
+                    <p className="mt-1.5 text-sm sm:text-base text-zinc-300 leading-relaxed">
+                      {type.oneLinerCN}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:justify-start">
+                  <Button asChild size="lg">
+                    <Link href="/test">开始你的 SBTI 测试</Link>
+                  </Button>
+                  <Button asChild variant="outline" size="lg">
+                    <Link href="/types">查看 27 类型</Link>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

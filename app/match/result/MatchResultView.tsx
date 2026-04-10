@@ -9,6 +9,7 @@ import { getCompatibility, type Verdict } from '@/data/compatibility';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { TypePoster } from '@/components/shared/TypePoster';
 
 const verdictClass: Record<Verdict, string> = {
   destiny: 'text-pink-400 border-pink-500/50 bg-pink-500/10',
@@ -87,7 +88,14 @@ export default function MatchResultView() {
                   style={{ borderColor: `${t.color}55` }}
                 >
                   <CardHeader>
-                    <div className="text-6xl sm:text-7xl mb-2">{t.emoji}</div>
+                    <TypePoster
+                      code={t.code}
+                      nameCN={t.nameCN}
+                      fallbackEmoji={t.emoji}
+                      priority
+                      sizes="(max-width: 640px) 40vw, 160px"
+                      className="mx-auto mb-3 size-28 sm:size-32 rounded-2xl ring-1 ring-white/10"
+                    />
                     <CardTitle className="text-xl sm:text-2xl">
                       {t.nameCN}
                     </CardTitle>
