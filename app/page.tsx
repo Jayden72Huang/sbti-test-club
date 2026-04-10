@@ -134,6 +134,30 @@ export default function HomePage() {
                 <Link href="/types">浏览 27 种类型</Link>
               </Button>
             </div>
+
+            {/* ---------- NEW · Couple matching entry ---------- */}
+            <Link
+              href="/match"
+              className="group mt-6 inline-flex max-w-full items-center gap-3 rounded-full border border-pink-400/40 bg-gradient-to-r from-pink-500/15 via-purple-500/10 to-pink-500/15 px-4 py-2.5 text-sm text-pink-100 shadow-lg shadow-pink-500/10 backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-pink-300/70 hover:shadow-pink-500/20 sm:px-5 sm:py-3 sm:text-base"
+            >
+              <span className="inline-flex items-center gap-1 rounded-full bg-pink-500/90 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white shadow-sm shadow-pink-500/40">
+                NEW
+              </span>
+              <span aria-hidden className="text-lg sm:text-xl">
+                💘
+              </span>
+              <span className="font-bold text-white">情侣配对已上线</span>
+              <span className="hidden text-pink-200/80 sm:inline">
+                · 输入两人 SBTI，秒测你俩合不合
+              </span>
+              <span
+                aria-hidden
+                className="text-pink-200 transition-transform group-hover:translate-x-1"
+              >
+                →
+              </span>
+            </Link>
+
             <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-xs sm:text-sm text-zinc-500">
               <span className="flex items-center gap-1.5">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
