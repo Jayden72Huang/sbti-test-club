@@ -8,6 +8,7 @@ import {
   calculateDimensionScores,
   isDrunkTriggered,
   matchSbtiType,
+  scoresToVector,
   type Answers,
   type SbtiType,
 } from '@/lib/scoring';
@@ -76,15 +77,6 @@ function clearPersisted() {
   } catch {
     /* ignore */
   }
-}
-
-/**
- * Normalize a type code into a URL-safe slug for the /type/[code] route.
- * Per team spec: only strip '!' and whitespace; preserve '-' in codes
- * like 'LOVE-R' → 'love-r', 'ATM-er' → 'atm-er'. 'WOC!' → 'woc'.
- */
-function codeToSlug(code: string): string {
-  return code.toLowerCase().replace(/[!\s]/g, '');
 }
 
 // ---------------------------------------------------------------------------
@@ -213,22 +205,34 @@ export default function TestClient() {
       setSubmitting(true);
 
       try {
-        // Short-circuit: hidden DRUNK trigger wins unconditionally.
+        // Compute the 15-dim scores once — both branches need them so the
+        // result page can render the user's actual radar / pattern.
+        const scores = calculateDimensionScores(finalAnswers, questions);
+        const pattern = scoresToVector(scores).join('');
+
+        // Short-circuit: hidden DRUNK trigger wins unconditionally. We still
+        // pass the pattern through so /result can show the user's real radar
+        // alongside the DRUNK type card.
         const drunk = isDrunkTriggered(finalAnswers, questions);
         if (drunk) {
           clearPersisted();
           window.setTimeout(
-            () => router.push('/type/drunk?from=test&match=100&drunk=1'),
+            () =>
+              router.push(
+                `/result?pattern=${pattern}&drunk=1&from=test`,
+              ),
             SUBMIT_LOADING_DELAY_MS,
           );
           return;
         }
 
-        // Normal flow: 15-dim scores → match against MINIMAL_TYPES stub.
-        const scores = calculateDimensionScores(finalAnswers, questions);
-        const result = matchSbtiType(scores, MINIMAL_TYPES);
-        const slug = codeToSlug(result.type.code);
-        const href = `/type/${slug}?from=test&match=${result.matchPercent}`;
+        // Normal flow: hand the pattern off to /result, which owns the full
+        // share / matches / radar UI. The slug-based /type/[code] page is
+        // SEO-only and doesn't carry any of the result CTAs.
+        // We still run matchSbtiType here so a scoring bug crashes early in
+        // dev rather than silently producing a broken /result link.
+        matchSbtiType(scores, MINIMAL_TYPES);
+        const href = `/result?pattern=${pattern}&from=test`;
 
         clearPersisted();
         window.setTimeout(() => router.push(href), SUBMIT_LOADING_DELAY_MS);

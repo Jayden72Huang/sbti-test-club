@@ -295,7 +295,10 @@ export function ResultView() {
   const similarTypes = (result?.similar ?? []).map(enrichType);
   const matchPercent = result?.matchPercent ?? null;
   const primaryCode = result?.type.code ?? (drunkParam ? 'DRUNK' : 'HHHH');
-  const typeHref = `/type/${primaryCode.toLowerCase()}`;
+  // Type detail pages preserve '-' in slugs (e.g. 'love-r') but strip '!' and
+  // whitespace. Matches the same rule used by generateStaticParams on /type.
+  const primarySlug = primaryCode.toLowerCase().replace(/[!\s]/g, '');
+  const typeHref = `/type/${primarySlug}`;
 
   return (
     <div className="mx-auto w-full max-w-5xl flex flex-col gap-10">
@@ -343,13 +346,18 @@ export function ResultView() {
           </div>
         )}
 
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Button asChild size="lg">
             <a href="#share">📸 分享结果</a>
           </Button>
           <Button asChild variant="outline" size="lg">
             <Link href={`/match?t1=${encodeURIComponent(primaryCode)}`}>
-              💘 情侣配对
+              💘 爱情最佳配对
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link href={`${typeHref}#strengths`}>
+              👀 我的优缺点
             </Link>
           </Button>
           <Button asChild variant="outline" size="lg">
