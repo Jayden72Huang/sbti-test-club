@@ -4,7 +4,6 @@ import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/cn';
-import { LocaleSwitch } from '@/components/shared/LocaleSwitch';
 
 export interface NavLink {
   href: string;
@@ -12,8 +11,6 @@ export interface NavLink {
 }
 
 export interface NavProps {
-  /** Locale prefix, e.g. '' for zh, '/en' for English. */
-  localePrefix?: string;
   /** Optional override for the nav link list. */
   links?: NavLink[];
   className?: string;
@@ -26,18 +23,13 @@ const defaultZhLinks: NavLink[] = [
   { href: '/match', label: '配对分析' },
 ];
 
-const defaultEnLinks: NavLink[] = [
-  { href: '/en', label: 'Home' },
-  { href: '/en/test', label: 'Take Test' },
-  { href: '/en/types', label: '27 Types' },
-  { href: '/en/match', label: 'Match' },
-];
-
-export function Nav({ localePrefix = '', links, className }: NavProps) {
+// Note: English routes (/en/...) are intentionally not exposed. The /en
+// implementation does not exist yet, and emitting English nav + hreflang
+// links caused Google to crawl 404s. Re-add when app/[locale]/... ships.
+export function Nav({ links, className }: NavProps) {
   const [open, setOpen] = React.useState(false);
-  const isEn = localePrefix === '/en';
-  const resolvedLinks = links ?? (isEn ? defaultEnLinks : defaultZhLinks);
-  const homeHref = isEn ? '/en' : '/';
+  const resolvedLinks = links ?? defaultZhLinks;
+  const homeHref = '/';
 
   return (
     <header
@@ -72,15 +64,12 @@ export function Nav({ localePrefix = '', links, className }: NavProps) {
               {link.label}
             </Link>
           ))}
-          <div className="ml-2">
-            <LocaleSwitch currentLocale={isEn ? 'en' : 'zh'} />
-          </div>
         </nav>
 
         <button
           type="button"
           className="md:hidden flex h-10 w-10 items-center justify-center rounded-xl text-zinc-300 hover:bg-zinc-800/60"
-          aria-label={isEn ? 'Toggle navigation' : '切换导航'}
+          aria-label="切换导航"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
@@ -122,9 +111,6 @@ export function Nav({ localePrefix = '', links, className }: NavProps) {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-2">
-              <LocaleSwitch currentLocale={isEn ? 'en' : 'zh'} />
-            </div>
           </div>
         </div>
       )}

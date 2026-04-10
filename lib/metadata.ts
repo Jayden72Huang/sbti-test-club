@@ -38,12 +38,16 @@ function toAbsolute(pathOrUrl: string): string {
   return `${SITE_URL}${normalized}`;
 }
 
-/** Build hreflang `alternates.languages` pair for a given path. */
+/**
+ * Build hreflang `alternates.languages` pair for a given path.
+ * The English locale is intentionally NOT advertised — there is no /en route
+ * implementation today, so emitting it caused Google to follow the hreflang
+ * link and 404. Re-add the `en` key once app/[locale]/... actually exists.
+ */
 function buildLanguages(path: string): Record<string, string> {
   const basePath = path === '/' ? '' : path;
   return {
     'zh-CN': `${SITE_URL}${basePath || '/'}`,
-    en: `${SITE_URL}/en${basePath}`,
     'x-default': `${SITE_URL}${basePath || '/'}`,
   };
 }
