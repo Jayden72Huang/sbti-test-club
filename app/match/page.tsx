@@ -133,6 +133,34 @@ export default function MatchPage() {
           </div>
         </section>
 
+        {/* Browse all 111 hand-written pairs (SEO hub → spokes) */}
+        <section className="mx-auto max-w-3xl px-4 sm:px-6 py-6">
+          <Link
+            href="/match/all"
+            className="group block rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 to-pink-500/5 p-6 transition-all hover:-translate-y-0.5 hover:border-purple-400/60"
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="text-[11px] font-black uppercase tracking-[0.2em] text-purple-300">
+                  深度配对图鉴
+                </div>
+                <h2 className="mt-1.5 text-xl sm:text-2xl font-black text-white">
+                  浏览 111 对手写 SBTI 配对深度解读 →
+                </h2>
+                <p className="mt-2 text-sm text-zinc-400">
+                  按匹配度分组：命中注定 / 非常合拍 / 可以相处 / 有点坎坷 / 难以共存。每对都有完整 1500+ 字解读。
+                </p>
+              </div>
+              <span
+                aria-hidden
+                className="shrink-0 text-2xl text-purple-300 transition-transform group-hover:translate-x-1"
+              >
+                →
+              </span>
+            </div>
+          </Link>
+        </section>
+
         {/* FAQ */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 py-12">
           <h2 className="text-3xl font-black mb-6">常见问题</h2>

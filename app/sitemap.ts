@@ -75,20 +75,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  // Programmatic couple-pair pages: C(27, 2) = 351 unique canonical pairs.
-  // Only emit the alphabetical (canonical) order — the route is SSG-only
-  // with `dynamicParams: false` so non-canonical URLs 404. Lower priority
-  // than /type details because they are long-tail targets.
-  const slugs = sbtiTypes.map((t) => t.slug).sort();
-  for (let i = 0; i < slugs.length; i += 1) {
-    for (let j = i + 1; j < slugs.length; j += 1) {
-      entries.push({
-        url: `${SITE_URL}/match/${slugs[i]}/${slugs[j]}`,
-        lastModified: now,
-        changeFrequency: 'monthly',
-        priority: 0.7,
-      });
-    }
+  // Match aggregation / browse index — discoverable parent for every pair.
+  entries.push({
+    url: `${SITE_URL}/match/all`,
+    lastModified: now,
+    changeFrequency: 'weekly',
+    priority: 0.85,
+  });
+
+  // Couple-pair pages: only the ~111 canonical pairs that have hand-written
+  // Compatibility entries. Everything else is deliberately excluded from
+  // the sitemap so Google never discovers the algorithmic fallback output.
+  // Source of truth is app/match/[a]/[b]/page.tsx `getAuthoredPairs()` to
+  // guarantee the sitemap can never drift from the SSG route set.
+  const { getAuthoredPairs } = await import('./match/[a]/[b]/page');
+  const authoredPairs = getAuthoredPairs();
+  for (const { a, b } of authoredPairs) {
+    entries.push({
+      url: `${SITE_URL}/match/${a}/${b}`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    });
   }
 
   return entries;

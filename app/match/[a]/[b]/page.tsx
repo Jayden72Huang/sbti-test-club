@@ -23,9 +23,11 @@ import { Footer } from '@/components/layout/Footer';
 import {
   sbtiTypes,
   sbtiTypesBySlug,
+  sbtiTypesByCode,
   type SbtiType,
 } from '@/data/sbti-types';
 import {
+  compatibilityData,
   getCompatibility,
   type Verdict,
   type Compatibility,
@@ -41,23 +43,47 @@ interface PageProps {
 }
 
 /**
- * Emit every canonical (alphabetical) unique pair of SBTI types. With 27
- * types, this gives C(27,2) = 351 routes. The non-alphabetical mirror
- * URLs (e.g. /match/mum/ctrl when ctrl < mum) are not in the static map
- * so they 404 under `dynamicParams: false`. Internal linking always uses
- * canonical order to keep PageRank focused on one URL per pair.
+ * Emit a route ONLY for pairs that have a hand-written Compatibility entry
+ * in data/compatibility.ts. This is deliberate: algorithmic fallbacks from
+ * getCompatibility() would produce thin template-repeated content that
+ * Google's Helpful Content system demotes as low-value. By limiting SSG to
+ * the ~111 human-authored unique pairs, every indexed page ships 800+ words
+ * of unique copy (summary + 5 fights + 3 dates + 3 tips + roast, all unique
+ * per pair).
+ *
+ * Non-authored pairs 404 under `dynamicParams: false` — the interactive
+ * `/match` form still renders them client-side via `/match/result`, so
+ * tool functionality is unchanged; we just don't expose the fallback
+ * output to search engines.
  */
 export const dynamicParams = false;
 
-export async function generateStaticParams(): Promise<RouteParams[]> {
-  const slugs = sbtiTypes.map((t) => t.slug).sort();
+/**
+ * Deduplicated list of canonical (alphabetical) slug pairs that have
+ * hand-written compatibility data. Computed once at module load so both
+ * generateStaticParams and sitemap can import it.
+ */
+export function getAuthoredPairs(): RouteParams[] {
+  const seen = new Set<string>();
   const out: RouteParams[] = [];
-  for (let i = 0; i < slugs.length; i += 1) {
-    for (let j = i + 1; j < slugs.length; j += 1) {
-      out.push({ a: slugs[i], b: slugs[j] });
-    }
+  for (const c of compatibilityData) {
+    const typeA = sbtiTypesByCode[c.type1];
+    const typeB = sbtiTypesByCode[c.type2];
+    if (!typeA || !typeB) continue;
+    const [a, b] =
+      typeA.slug < typeB.slug
+        ? [typeA.slug, typeB.slug]
+        : [typeB.slug, typeA.slug];
+    const key = `${a}|${b}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ a, b });
   }
   return out;
+}
+
+export async function generateStaticParams(): Promise<RouteParams[]> {
+  return getAuthoredPairs();
 }
 
 // ---------------------------------------------------------------------------
