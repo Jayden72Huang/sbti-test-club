@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next';
 
+import { guides } from '@/data/guides';
+
 const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://sbti-test.club'
 ).replace(/\/$/, '');
@@ -54,6 +56,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.8,
+    });
+  }
+
+  // L3 guide pages (long-form SEO articles).
+  entries.push({
+    url: `${SITE_URL}/guide`,
+    lastModified: now,
+    changeFrequency: 'weekly',
+    priority: 0.9,
+  });
+  for (const g of guides) {
+    entries.push({
+      url: `${SITE_URL}/guide/${g.slug}`,
+      lastModified: new Date(g.datePublished),
+      changeFrequency: 'monthly',
+      priority: 0.85,
     });
   }
 
