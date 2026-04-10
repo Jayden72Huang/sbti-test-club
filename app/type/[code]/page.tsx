@@ -294,6 +294,67 @@ export default async function TypeDetailPage({ params }: PageProps) {
           </div>
         </section>
 
+        {/* ================= TL;DR quotable block (GEO) ================= */}
+        {/*
+          This block re-renders existing data in a structure designed to be
+          picked up verbatim by LLM-based search engines. The opening sentence
+          follows a strict "X is Y that Z" schema so Perplexity / ChatGPT /
+          Gemini / Google AI Overview can extract a clean definition. No new
+          copy — just a quotable shape around strengths, weaknesses, and
+          best matches already on the page.
+        */}
+        <section className="mx-auto max-w-3xl px-4 sm:px-6 pt-10">
+          <div
+            className="rounded-2xl border border-purple-500/30 p-6 sm:p-7"
+            style={{
+              backgroundImage: `radial-gradient(circle at 0% 0%, ${type.color}22 0%, transparent 60%), radial-gradient(circle at 100% 100%, rgba(168,85,247,0.12) 0%, transparent 60%)`,
+            }}
+          >
+            <div className="text-[11px] font-black uppercase tracking-[0.2em] text-purple-300">
+              TL;DR · 一句话认识这个类型
+            </div>
+            <p className="mt-3 text-base sm:text-lg leading-relaxed text-white">
+              <strong className="text-white">SBTI {type.code}</strong>
+              （{type.nameCN}，{type.nameEN}）是 SBTI 27 种人格类型中的一种。
+              {type.oneLinerCN}
+            </p>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">
+                  ✓ Strengths · 核心优点
+                </div>
+                <ul className="mt-2 space-y-1 text-sm text-zinc-300 leading-relaxed">
+                  {type.strengthsCN.slice(0, 3).map((s, i) => (
+                    <li key={`s-${i}`}>· {s}</li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-rose-300">
+                  ✗ Weaknesses · 需警惕的短板
+                </div>
+                <ul className="mt-2 space-y-1 text-sm text-zinc-300 leading-relaxed">
+                  {type.weaknessesCN.slice(0, 3).map((w, i) => (
+                    <li key={`w-${i}`}>· {w}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            {compatibleCards.length > 0 && (
+              <div className="mt-5 border-t border-zinc-800/80 pt-4 text-sm">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                  最佳配对 · Best matches
+                </span>
+                <span className="ml-2 text-zinc-300">
+                  {compatibleCards
+                    .map((c) => `${c.code} ${c.nameCN}`)
+                    .join('、')}
+                </span>
+              </div>
+            )}
+          </div>
+        </section>
+
         {/* ================= Deep analysis ================= */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 py-12">
           <header className="mb-6">
