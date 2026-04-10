@@ -29,15 +29,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const entries: MetadataRoute.Sitemap = [];
 
+  // Note: /en/* URLs are intentionally NOT emitted. The English locale has
+  // no route implementation today, so listing them in the sitemap pointed
+  // Google at 31 guaranteed 404s. Re-add when app/[locale]/... ships.
   for (const r of staticRoutes) {
     entries.push({
       url: `${SITE_URL}${r.path}`,
-      lastModified: now,
-      changeFrequency: r.changeFrequency,
-      priority: r.priority,
-    });
-    entries.push({
-      url: `${SITE_URL}/en${r.path}`,
       lastModified: now,
       changeFrequency: r.changeFrequency,
       priority: r.priority,
@@ -47,12 +44,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const t of sbtiTypes) {
     entries.push({
       url: `${SITE_URL}/type/${t.slug}`,
-      lastModified: now,
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    });
-    entries.push({
-      url: `${SITE_URL}/en/type/${t.slug}`,
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.8,
