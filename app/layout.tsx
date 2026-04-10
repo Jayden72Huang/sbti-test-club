@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { SchemaJsonLd } from '@/components/shared/SchemaJsonLd';
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import { SITE_NAME, SITE_URL, buildMetadata } from '@/lib/metadata';
 import { organizationSchema, webApplicationSchema } from '@/lib/schema';
 
@@ -83,6 +84,7 @@ export default function RootLayout({
           id="sbti-root-schema"
           schema={[organizationSchema(), webApplicationSchema()]}
         />
+        <GoogleAnalytics />
         {children}
       </body>
     </html>
