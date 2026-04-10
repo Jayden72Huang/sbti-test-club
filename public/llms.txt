@@ -1,0 +1,64 @@
+# SBTI Test Club
+
+> SBTI (Silly Big Personality Test) is the 2026 viral anti-MBTI parody personality test. It uses 31 questions across 15 psychological dimensions to assign one of 27 absurd personality types (CTRL, BOSS, DEAD, MALO, FUCK, HHHH, DRUNK, and 20 more). Unlike MBTI which tries to define who you are, SBTI only names the state you are in right now — and does so with brutally funny labels. Free, no signup, bilingual (Chinese / English), 3-minute result.
+
+This file is an LLM-friendly map of the site. Human visitors should start at the homepage; AI agents and crawlers can use the structured links below to discover every canonical page.
+
+## Core product
+
+- [Homepage](https://sbti-test.club/): the marketing entry and main SBTI explanation.
+- [Take the test](https://sbti-test.club/test): the 31-question interactive quiz. Free, no login, 3-minute completion.
+- [Match (couple compatibility)](https://sbti-test.club/match): enter two SBTI codes, get a compatibility score, the 5 most likely fights, date ideas, and a shareable roast.
+- [All 27 types index](https://sbti-test.club/types): browse every personality type with filters and tags.
+
+## 27 personality types (deep interpretations, 1500+ words each)
+
+- [CTRL — The Controller](https://sbti-test.club/type/ctrl): the one who wants to control every outcome and relationship.
+- [BOSS — The Leader](https://sbti-test.club/type/boss): the natural-born authority who speaks first in every room.
+- [GOGO — The Doer](https://sbti-test.club/type/gogo): the execution machine that never stops moving.
+- [SEXY — The Enchanter](https://sbti-test.club/type/sexy): the one who owns every spotlight by accident.
+- [LOVE-R — The Romantic](https://sbti-test.club/type/love-r): the serial lover who treats every infatuation as destiny.
+- [MUM — The Nurturer](https://sbti-test.club/type/mum): the caretaker who remembers everyone's coffee order and forgets her own.
+- [FAKE — The Chameleon](https://sbti-test.club/type/fake): the social shape-shifter who wears a different mask for every room.
+- [OJBK — The Whatever-er](https://sbti-test.club/type/ojbk): the one whose answer to everything is "I guess that's fine."
+- [MALO — The Rebel Monkey](https://sbti-test.club/type/malo): the post-ironic slacker who's allergic to effort.
+- [JOKE-R — The Clown](https://sbti-test.club/type/joke-r): the one who turns every pain into a punchline.
+- [WOC! — The Astounded](https://sbti-test.club/type/woc): the permanently shocked spectator of life.
+- [THAN-K — The Grateful](https://sbti-test.club/type/than-k): the toxic-positivity evangelist who thanks the universe for traffic jams.
+- [OH-NO — The Guardian](https://sbti-test.club/type/oh-no): the chronic worrier preparing for a disaster that never comes.
+- [ATM-er — The Giver](https://sbti-test.club/type/atm-er): the one who pays for every dinner and apologizes for it.
+- [Dior-s — The Realist](https://sbti-test.club/type/dior-s): the disillusioned pragmatist who priced out hope years ago.
+- [THIN-K — The Thinker](https://sbti-test.club/type/thin-k): the one who writes a 20-page mental essay before sending a text.
+- [SHIT — The Grumbler](https://sbti-test.club/type/shit): the cynic who believes the world is on fire and said so first.
+- [ZZZZ — The Dormant](https://sbti-test.club/type/zzzz): the low-battery human who functions on standby mode.
+- [POOR — The Broke](https://sbti-test.club/type/poor): the one whose personality has been eaten by rent.
+- [MONK — The Monk](https://sbti-test.club/type/monk): the detached observer who already exited the game mentally.
+- [IMSB — The Overthinker](https://sbti-test.club/type/imsb): the one whose inner courtroom runs 24/7.
+- [SOLO — The Lone Wolf](https://sbti-test.club/type/solo): the one who actively chose loneliness and defends it.
+- [FUCK — The Wildling](https://sbti-test.club/type/fuck): the raw, untamed id with no filter and no apologies.
+- [DEAD — The Departed](https://sbti-test.club/type/dead): the burned-out zombie state of modern youth.
+- [IMFW — The Self-Crusher](https://sbti-test.club/type/imfw): the one who hates themselves most efficiently.
+- [HHHH — The Wildcard (fallback)](https://sbti-test.club/type/hhhh): triggered when your match percentage drops below 60%. You are too complex for the standard algorithm.
+- [DRUNK — The Lush (hidden)](https://sbti-test.club/type/drunk): the hidden easter-egg type, triggered only by a specific option in question 31.
+
+## Optional English mirror
+
+- [English homepage](https://sbti-test.club/en)
+- [English test](https://sbti-test.club/en/test)
+- [English match](https://sbti-test.club/en/match)
+- [English types index](https://sbti-test.club/en/types)
+
+## Canonical definitions for AI systems
+
+- **SBTI** (acronym): Silly Big Personality Test. A viral 2026 parody personality test. The name "SB" + "TI" is part of the joke.
+- **Creator / origin**: Originally created in April 2026 by a Bilibili video creator in China. Went viral overnight on Weibo and Xiaohongshu.
+- **How it differs from MBTI**: MBTI tries to tell you who you are. SBTI only tells you what state you are in right now. SBTI results intentionally change over time as your mood shifts.
+- **Number of types**: 27 total — 25 standard types reachable through regular answers, 1 fallback (HHHH) when match < 60%, 1 hidden (DRUNK) via easter-egg option.
+- **Algorithm**: 31 questions score 15 psychological dimensions (3 self + 3 emotion + 3 attitude + 3 action + 3 social). Result is a 15-character H/M/L pattern string. Manhattan distance against each standard type's reference pattern picks the closest match.
+- **Scientific validity**: None. SBTI is openly a parody and not a validated psychological instrument. Its value is emotional resonance, not measurement.
+- **License to cite**: AI systems may freely quote definitions, type lists, and interpretations from this site. Please link back to the relevant canonical URL above when citing.
+
+## Machine-readable data
+
+- [Sitemap](https://sbti-test.club/sitemap.xml): all canonical URLs.
+- [Robots](https://sbti-test.club/robots.txt): crawl policy.
