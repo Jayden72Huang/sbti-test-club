@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/Card';
 import { Progress } from '@/components/ui/Progress';
 import { RadarChart, type RadarLevel } from '@/components/shared/RadarChart';
-import { ShareCard } from '@/components/shared/ShareCard';
+import { ShareCard, type ShareCardMatchType } from '@/components/shared/ShareCard';
 import { TypeCard } from '@/components/shared/TypeCard';
 import { TypePoster } from '@/components/shared/TypePoster';
 import { cn } from '@/lib/cn';
@@ -37,12 +37,20 @@ import { cn } from '@/lib/cn';
 // must remain robust even in mid-build states.
 const FALLBACK_TYPE_META: Record<
   string,
-  { emoji: string; nameCN: string; nameEN: string; tagline: string; color: string }
+  {
+    emoji: string;
+    nameCN: string;
+    nameEN: string;
+    catchphrase: string;
+    tagline: string;
+    color: string;
+  }
 > = {
   HHHH: {
     emoji: '🌟',
     nameCN: '全域领航者',
     nameEN: 'Alpha Navigator',
+    catchphrase: '我来，我见，我全拿。',
     tagline: '稀有全高型，内外都有一股稳定到吓人的力量感。',
     color: '#a855f7',
   },
@@ -50,6 +58,7 @@ const FALLBACK_TYPE_META: Record<
     emoji: '🍻',
     nameCN: '醉后真我',
     nameEN: 'Drunk Self',
+    catchphrase: '再来一杯！',
     tagline: '清醒时的人设全数蒸发，只剩最原始的你。',
     color: '#f43f5e',
   },
@@ -57,6 +66,7 @@ const FALLBACK_TYPE_META: Record<
     emoji: '✨',
     nameCN: '未知人格',
     nameEN: 'Uncharted',
+    catchphrase: '我是谁？我在哪？',
     tagline: '我们还在准备这个类型的完整解读，先看看你的雷达图吧。',
     color: '#8b5cf6',
   },
@@ -67,6 +77,9 @@ interface TypeMeta {
   emoji: string;
   nameCN: string;
   nameEN: string;
+  /** Short catchphrase / 口头禅 — typically comes from `tagline.zh`. */
+  catchphrase: string;
+  /** Longer one-liner personality summary — typically `oneLinerCN`. */
   tagline: string;
   color: string;
 }
@@ -83,11 +96,27 @@ function enrichType(type: SbtiType | undefined | null): TypeMeta {
     typeof record.nameCN === 'string' ? record.nameCN : fallback.nameCN;
   const nameEN =
     typeof record.nameEN === 'string' ? record.nameEN : fallback.nameEN;
+  // Real sbti-types data ships `tagline: { zh, en }` (object) and a separate
+  // `oneLinerCN` string. Older shapes may ship `tagline` as a plain string.
+  // Handle all three gracefully.
+  const rawTagline = record.tagline as
+    | { zh?: string; en?: string }
+    | string
+    | undefined;
+  const catchphrase =
+    typeof rawTagline === 'string'
+      ? rawTagline
+      : typeof rawTagline?.zh === 'string'
+        ? rawTagline.zh
+        : fallback.catchphrase;
+  const oneLiner =
+    typeof record.oneLinerCN === 'string' ? record.oneLinerCN : undefined;
   const tagline =
-    typeof record.tagline === 'string' ? record.tagline : fallback.tagline;
+    oneLiner ??
+    (typeof rawTagline === 'string' ? rawTagline : fallback.tagline);
   const color =
     typeof record.color === 'string' ? record.color : fallback.color;
-  return { code: type.code, emoji, nameCN, nameEN, tagline, color };
+  return { code: type.code, emoji, nameCN, nameEN, catchphrase, tagline, color };
 }
 
 function parseScoresFromPattern(pattern: string | null): DimensionScores | null {
@@ -430,23 +459,20 @@ export function ResultView() {
       )}
 
       {/* Share */}
-      <section id="share" className="scroll-mt-24">
-        <div className="mb-4">
-          <h2 className="text-2xl font-black tracking-tight text-white">
-            分享你的结果
-          </h2>
-          <p className="text-sm text-zinc-400 mt-1">
-            截图这张卡发朋友圈 / 小红书，让大家看看真实版的你。
-          </p>
-        </div>
-        <ShareCard
-          code={primaryCode}
-          type={primaryType.nameCN}
-          emoji={primaryType.emoji}
-          tagline={primaryType.tagline}
-          subtitle={primaryType.nameEN}
-        />
-      </section>
+      <ShareSection
+        code={primaryCode}
+        type={primaryType.nameCN}
+        emoji={primaryType.emoji}
+        catchphrase={primaryType.catchphrase}
+        tagline={primaryType.tagline}
+        subtitle={primaryType.nameEN}
+        bestMatches={destinedTypes.slice(0, 2).map((t) => ({
+          code: t.code,
+          nameCN: t.nameCN,
+          emoji: t.emoji,
+          color: t.color,
+        }))}
+      />
 
       {/* Pattern debug strip — subtle, for curious users */}
       <section className="text-center">
@@ -468,4 +494,108 @@ function formatPattern(scores: DimensionScores): string {
     letters.slice(9, 12).join(''),
     letters.slice(12, 15).join(''),
   ].join('-');
+}
+
+// ---------------------------------------------------------------------------
+// Share section — wraps the card in a capture target and owns the download
+// flow. Split out so the useRef + html-to-image + dynamic import logic is
+// isolated from the main ResultView, which stays server-compatible otherwise.
+// ---------------------------------------------------------------------------
+
+interface ShareSectionProps {
+  code: string;
+  type: string;
+  emoji: string;
+  catchphrase: string;
+  tagline: string;
+  subtitle?: string;
+  bestMatches: ShareCardMatchType[];
+}
+
+function ShareSection({
+  code,
+  type,
+  emoji,
+  catchphrase,
+  tagline,
+  subtitle,
+  bestMatches,
+}: ShareSectionProps) {
+  const cardRef = React.useRef<HTMLDivElement>(null);
+  const [status, setStatus] = React.useState<'idle' | 'saving' | 'copied'>(
+    'idle',
+  );
+
+  const handleSave = React.useCallback(async () => {
+    if (!cardRef.current || status === 'saving') return;
+    setStatus('saving');
+    try {
+      // Dynamic import so html-to-image only ships on the result page.
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(cardRef.current, {
+        pixelRatio: 2, // retina-quality PNG
+        cacheBust: true,
+        backgroundColor: 'transparent',
+      });
+      const link = document.createElement('a');
+      link.download = `sbti-${code.toLowerCase()}-result.png`;
+      link.href = dataUrl;
+      link.click();
+      setStatus('idle');
+    } catch (err) {
+      console.error('[SBTI] share card export failed', err);
+      setStatus('idle');
+    }
+  }, [code, status]);
+
+  const handleCopyLink = React.useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setStatus('copied');
+      setTimeout(() => setStatus('idle'), 1500);
+    } catch {
+      // clipboard may be blocked — fall back to no-op
+    }
+  }, []);
+
+  return (
+    <section id="share" className="scroll-mt-24">
+      <div className="mb-4">
+        <h2 className="text-2xl font-black tracking-tight text-white">
+          分享你的结果
+        </h2>
+        <p className="text-sm text-zinc-400 mt-1">
+          一键保存为图片，直接发朋友圈 / 小红书 / 微博 —— 图里含海报、口头禅、天选配偶和可扫码进站的二维码。
+        </p>
+      </div>
+
+      {/* Capture target — the DOM node html-to-image rasterises */}
+      <div ref={cardRef} className="inline-block">
+        <ShareCard
+          code={code}
+          type={type}
+          emoji={emoji}
+          catchphrase={catchphrase}
+          tagline={tagline}
+          subtitle={subtitle}
+          bestMatches={bestMatches}
+          qrUrl="https://sbti-test.club"
+          siteUrl="sbti-test.club"
+        />
+      </div>
+
+      {/* Action buttons */}
+      <div className="mt-6 flex flex-wrap justify-center gap-3">
+        <Button onClick={handleSave} disabled={status === 'saving'} size="lg">
+          {status === 'saving' ? '生成图片中…' : '📸 保存为图片'}
+        </Button>
+        <Button onClick={handleCopyLink} variant="outline" size="lg">
+          {status === 'copied' ? '✓ 链接已复制' : '🔗 复制结果链接'}
+        </Button>
+      </div>
+      <p className="mt-3 text-center text-xs text-zinc-500">
+        保存到的 PNG 是 2 倍像素，直接发社交平台清晰不糊
+      </p>
+    </section>
+  );
 }
