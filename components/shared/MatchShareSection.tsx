@@ -52,19 +52,23 @@ export function MatchShareSection({
       const node = cardRef.current;
       const filename = `sbti-${type1.code.toLowerCase()}-${type2.code.toLowerCase()}-match.png`;
 
-      // First pass warms image caches; second produces correct output
-      await toPng(node, { pixelRatio: 2 }).catch(() => null);
-      const dataUrl = await toPng(node, { pixelRatio: 2 });
+      // backgroundColor fills rounded-corner gaps (eliminates white edges)
+      const dataUrl = await toPng(node, {
+        pixelRatio: 2,
+        backgroundColor: '#09090b',
+      });
 
-      // Mobile: use Web Share API for native image saving
-      if (typeof navigator.share === 'function' && typeof navigator.canShare === 'function') {
+      // Only use Web Share API on actual mobile devices (not macOS desktop)
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if (
+        isMobile &&
+        typeof navigator.share === 'function' &&
+        typeof navigator.canShare === 'function'
+      ) {
         try {
           const file = await dataUrlToFile(dataUrl, filename);
           if (navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              files: [file],
-              title: 'SBTI 配对结果',
-            });
+            await navigator.share({ files: [file], title: 'SBTI 配对结果' });
             setStatus('idle');
             return;
           }
@@ -73,14 +77,13 @@ export function MatchShareSection({
         }
       }
 
-      // Desktop / fallback: trigger download via blob URL (avoids data-URL file naming issues)
+      // Desktop / fallback: direct download via blob URL
       const file = await dataUrlToFile(dataUrl, filename);
       const blobUrl = URL.createObjectURL(file);
       const link = document.createElement('a');
       link.download = filename;
       link.href = blobUrl;
       link.click();
-      // Clean up after a short delay
       setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
 
       setStatus('idle');
