@@ -9,6 +9,7 @@ import {
   articleSchema,
   breadcrumbSchema,
   faqPageSchema,
+  speakableSchema,
   type FaqItem,
 } from '@/lib/schema';
 
@@ -85,9 +86,16 @@ export async function generateMetadata({
     });
   }
 
+  // Build CTR-optimised titles that include compelling specifics (15-dim,
+  // radar chart, match, free) rather than generic "Complete Guide" phrasing.
+  const ctrTitleCN = `SBTI ${type.code} ${type.nameCN}人格 | 15维分析+配对+雷达图 (免费)`;
+  const ctrTitleEN = `SBTI ${type.code} ${type.nameEN} | 15-Dim Analysis + Match + Radar (Free)`;
+  const ctrDescCN = `${type.nameCN}（${type.code}）完整人格画像：15 维度雷达图、优缺点、名人代表、情侣配对、电影歌单与专属礼物。${type.oneLinerCN} 免费测试，无需注册。`;
+  const ctrDescEN = `${type.nameEN} (${type.code}) full personality portrait: 15-dimension radar chart, strengths & weaknesses, celebrity examples, couple matching, movie & music picks. ${type.oneLinerEN} Free, no signup.`;
+
   return buildMetadata({
-    title: isEn ? type.seo.metaTitleEN : type.seo.metaTitleCN,
-    description: isEn ? type.seo.metaDescEN : type.seo.metaDescCN,
+    title: isEn ? ctrTitleEN : ctrTitleCN,
+    description: isEn ? ctrDescEN : ctrDescCN,
     path: `/type/${type.slug}`,
     keywords: isEn ? type.seo.keywordsEN : type.seo.keywordsCN,
     locale: isEn ? 'en' : 'zh',
@@ -203,6 +211,10 @@ export default async function TypeDetailPage({ params }: PageProps) {
       { name: isEn ? 'Home' : '首页', url: '/' },
       { name: isEn ? '27 Types' : '27 类型', url: '/types' },
       { name: `${type.code} ${isEn ? type.nameEN : type.nameCN}`, url: `/type/${type.slug}` },
+    ]),
+    speakableSchema(`/type/${type.slug}`, [
+      '[data-type-tldr]',
+      '[data-type-faq]',
     ]),
   ];
 
@@ -349,7 +361,7 @@ export default async function TypeDetailPage({ params }: PageProps) {
           copy — just a quotable shape around strengths, weaknesses, and
           best matches already on the page.
         */}
-        <section className="mx-auto max-w-3xl px-4 sm:px-6 pt-10">
+        <section data-type-tldr className="mx-auto max-w-3xl px-4 sm:px-6 pt-10">
           <div
             className="rounded-2xl border border-purple-500/30 p-6 sm:p-7"
             style={{
@@ -791,7 +803,7 @@ export default async function TypeDetailPage({ params }: PageProps) {
         )}
 
         {/* ================= FAQ ================= */}
-        <section className="mx-auto max-w-3xl px-4 sm:px-6 py-12">
+        <section data-type-faq className="mx-auto max-w-3xl px-4 sm:px-6 py-12">
           <header className="mb-8 text-center">
             <Badge variant="default">{isEn ? 'FAQ' : '常见问题'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">

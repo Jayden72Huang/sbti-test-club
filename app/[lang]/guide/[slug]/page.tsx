@@ -9,6 +9,7 @@ import {
   articleSchema,
   breadcrumbSchema,
   faqPageSchema,
+  speakableSchema,
 } from '@/lib/schema';
 
 import { Badge } from '@/components/ui/Badge';
@@ -145,6 +146,10 @@ export default async function GuidePage({ params }: PageProps) {
       { name: '指南', url: '/guide' },
       { name: guide.title, url: `/guide/${guide.slug}` },
     ]),
+    speakableSchema(`/guide/${guide.slug}`, [
+      '[data-guide-tldr]',
+      '[data-guide-faq]',
+    ]),
   ];
 
   // Related guides: everything except the current one, capped at 3.
@@ -199,7 +204,7 @@ export default async function GuidePage({ params }: PageProps) {
         </section>
 
         {/* ================= TL;DR quotable block ================= */}
-        <section className="mx-auto max-w-4xl px-4 sm:px-6 pb-10">
+        <section data-guide-tldr className="mx-auto max-w-4xl px-4 sm:px-6 pb-10">
           <div className="rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-pink-500/10 p-6 sm:p-7">
             <div className="text-[11px] font-black uppercase tracking-[0.2em] text-purple-300">
               {isEn ? 'TL;DR' : 'TL;DR · 先看结论'}
@@ -232,7 +237,7 @@ export default async function GuidePage({ params }: PageProps) {
         </article>
 
         {/* ================= FAQ ================= */}
-        <section className="mx-auto max-w-3xl px-4 sm:px-6 py-12 border-t border-zinc-900">
+        <section data-guide-faq className="mx-auto max-w-3xl px-4 sm:px-6 py-12 border-t border-zinc-900">
           <header className="mb-8 text-center">
             <Badge variant="default">{isEn ? 'FAQ' : '常见问题'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">

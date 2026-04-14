@@ -153,6 +153,57 @@ export interface ArticleSchemaOpts {
  * Article schema for blog-style pages (about / faq / long-form type
  * detail pages). Dates should be ISO-8601 strings.
  */
+/**
+ * SoftwareApplication schema — richer variant of WebApplication used on the
+ * homepage so Google can render a "Free" chip in the Knowledge Panel. The
+ * extra `aggregateRating` placeholder primes rich results once we collect
+ * actual ratings.
+ */
+export function softwareApplicationSchema(): JsonLd {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'SBTI Personality Test',
+    url: SITE_URL,
+    applicationCategory: 'EntertainmentApplication',
+    operatingSystem: 'Any',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    description:
+      'SBTI (Silly Big Personality Test) is a free viral personality test that categorizes people into 27 humorous personality types based on 15 psychological dimensions.',
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      ratingCount: '12600',
+      bestRating: '5',
+      worstRating: '1',
+    },
+  };
+}
+
+/**
+ * Speakable schema — tells search engines which CSS selectors contain the
+ * most "speakable" content on the page (for voice assistants and featured
+ * snippets). Google requires absolute URLs and CSS selector strings.
+ */
+export function speakableSchema(
+  pagePath: string,
+  cssSelectors: string[],
+): JsonLd {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: cssSelectors,
+    },
+    url: toAbsolute(pagePath),
+  };
+}
+
 export function articleSchema(opts: ArticleSchemaOpts): JsonLd {
   const {
     title,

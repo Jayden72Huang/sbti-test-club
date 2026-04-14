@@ -9,6 +9,7 @@ import {
   articleSchema,
   breadcrumbSchema,
   faqPageSchema,
+  speakableSchema,
   type FaqItem,
 } from '@/lib/schema';
 
@@ -223,11 +224,11 @@ export async function generateMetadata({
   const nameB = isEn ? typeB.nameEN : typeB.nameCN;
 
   const title = isEn
-    ? `SBTI ${typeA.code} × ${typeB.code} Match · ${nameA} & ${nameB} Compatibility (${compat.scorePercent}% ${verdictLabel})`
-    : `SBTI ${typeA.code} × ${typeB.code} 配对 · ${nameA}和${nameB}合不合（${compat.scorePercent}% ${verdictLabel}）`;
+    ? `${typeA.code} × ${typeB.code} ${compat.scorePercent}% ${verdictLabel} | SBTI Couple Match (Free)`
+    : `${typeA.code} × ${typeB.code} 匹配${compat.scorePercent}% ${verdictLabel} | SBTI情侣配对 (免费)`;
   const description = isEn
-    ? `SBTI ${typeA.code} ${nameA} & ${typeB.code} ${nameB} couple compatibility deep dive: ${compat.scorePercent}% match, 5 common fights, 3 date ideas, 3 relationship tips, and a shareable roast. Free, no sign-up.`
-    : `SBTI ${typeA.code} ${nameA} 与 ${typeB.code} ${nameB} 的情侣配对深度分析：匹配度 ${compat.scorePercent}%，5 件最可能吵的事，3 条约会建议，3 条相处 tips，一句可分享吐槽。免费无需注册。`;
+    ? `Are ${nameA} (${typeA.code}) & ${nameB} (${typeB.code}) compatible? ${compat.scorePercent}% match — rated "${verdictLabel}." 5 fights, 3 date ideas, 3 tips, roast line. 15-dim algorithm, free, no sign-up.`
+    : `${nameA}(${typeA.code}) 和 ${nameB}(${typeB.code}) 合不合？匹配度 ${compat.scorePercent}%「${verdictLabel}」。5 大吵架雷区+3 条约会建议+3 条相处 tips+灵魂吐槽。15维算法，免费无需注册。`;
 
   return buildMetadata({
     title,
@@ -309,6 +310,9 @@ export default async function MatchPairPage({ params }: PageProps) {
         name: `${typeA.code} × ${typeB.code}`,
         url: localePath(`/match/${slugA}/${slugB}`, locale),
       },
+    ]),
+    speakableSchema(localePath(`/match/${slugA}/${slugB}`, locale), [
+      '[data-match-tldr]',
     ]),
   ];
 
@@ -464,7 +468,7 @@ export default async function MatchPairPage({ params }: PageProps) {
         </section>
 
         {/* ================= TL;DR quotable block ================= */}
-        <section className="mx-auto max-w-3xl px-4 sm:px-6 pt-6">
+        <section data-match-tldr className="mx-auto max-w-3xl px-4 sm:px-6 pt-6">
           <div
             className="rounded-2xl border border-purple-500/30 p-6 sm:p-7"
             style={{
