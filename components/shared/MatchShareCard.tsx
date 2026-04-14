@@ -96,7 +96,7 @@ export function MatchShareCard({
   return (
     <div
       className={cn(
-        'relative w-full overflow-hidden rounded-3xl p-6 pb-5 text-white',
+        'relative w-full overflow-hidden rounded-3xl p-8 pb-7 text-white',
         'bg-gradient-to-br from-zinc-950 via-purple-950 to-zinc-950',
         'border border-purple-500/30 shadow-2xl shadow-purple-900/50',
         className,
@@ -124,10 +124,10 @@ export function MatchShareCard({
         </div>
 
         {/* Types + Score side by side */}
-        <div className="mt-5 flex items-center justify-center gap-2">
+        <div className="mt-6 flex items-center justify-center gap-3">
           {/* Type 1 */}
           <div className="flex flex-col items-center text-center flex-1 min-w-0">
-            <div className="size-[72px] rounded-2xl ring-1 ring-white/15 overflow-hidden bg-white/10 shrink-0">
+            <div className="size-[88px] rounded-2xl ring-1 ring-white/15 overflow-hidden bg-white/10 shrink-0">
               <TypeImg code={type1.code} emoji={type1.emoji} />
             </div>
             <div className="mt-2 text-base font-black leading-none truncate w-full">
@@ -141,7 +141,7 @@ export function MatchShareCard({
           {/* Score in center */}
           <div className="flex flex-col items-center shrink-0 px-1">
             <div
-              className="text-5xl font-black leading-none"
+              className="text-6xl font-black leading-none"
               style={{ color: vColor }}
             >
               {scorePercent}%
@@ -160,7 +160,7 @@ export function MatchShareCard({
 
           {/* Type 2 */}
           <div className="flex flex-col items-center text-center flex-1 min-w-0">
-            <div className="size-[72px] rounded-2xl ring-1 ring-white/15 overflow-hidden bg-white/10 shrink-0">
+            <div className="size-[88px] rounded-2xl ring-1 ring-white/15 overflow-hidden bg-white/10 shrink-0">
               <TypeImg code={type2.code} emoji={type2.emoji} />
             </div>
             <div className="mt-2 text-base font-black leading-none truncate w-full">
@@ -173,13 +173,13 @@ export function MatchShareCard({
         </div>
 
         {/* Summary + Roast */}
-        <div className="mt-4 flex flex-col gap-2.5">
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5">
+        <div className="mt-6 flex flex-col gap-3">
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5">
             <p className="text-center text-[11px] leading-relaxed text-zinc-300 line-clamp-3">
               {summary}
             </p>
           </div>
-          <div className="rounded-xl bg-purple-500/10 border border-purple-500/20 px-3 py-2">
+          <div className="rounded-xl bg-purple-500/10 border border-purple-500/20 px-4 py-3">
             <p className="text-center text-[10px] italic leading-relaxed text-purple-200 line-clamp-2">
               「{roast}」
             </p>
@@ -187,7 +187,7 @@ export function MatchShareCard({
         </div>
 
         {/* Footer (Logo + QR) */}
-        <div className="mt-5 pt-3 flex items-center justify-between gap-3 border-t border-white/10">
+        <div className="mt-8 pt-4 flex items-center justify-between gap-3 border-t border-white/10">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
             {/* Inline logo SVG — embedded for html-to-image reliability */}
             <svg
