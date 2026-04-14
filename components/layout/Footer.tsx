@@ -66,7 +66,7 @@ export function Footer({
               >
                 S
               </span>
-              <span>SBTI Club</span>
+              <span>sbti-test.club</span>
             </Link>
             <p className="mt-3 text-sm leading-relaxed">
               {isEn

@@ -51,7 +51,7 @@ export function Nav({ links, className }: NavProps) {
             priority
             className="h-8 w-8 rounded-xl shadow-lg shadow-purple-500/40"
           />
-          <span>SBTI Club</span>
+          <span>sbti-test.club</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">

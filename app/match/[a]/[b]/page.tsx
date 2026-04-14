@@ -19,6 +19,7 @@ import { SchemaJsonLd } from '@/components/shared/SchemaJsonLd';
 import { TypePoster } from '@/components/shared/TypePoster';
 import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
+import { MatchShareSection } from '@/components/shared/MatchShareSection';
 
 import {
   sbtiTypes,
@@ -596,6 +597,17 @@ export default async function MatchPairPage({ params }: PageProps) {
             </div>
           </section>
         )}
+
+        {/* ================= Share ================= */}
+        <section className="mx-auto max-w-3xl px-4 sm:px-6 py-12 border-t border-zinc-900">
+          <MatchShareSection
+            type1={{ code: typeA.code, nameCN: typeA.nameCN, emoji: typeA.emoji, color: typeA.color }}
+            type2={{ code: typeB.code, nameCN: typeB.nameCN, emoji: typeB.emoji, color: typeB.color }}
+            scorePercent={compat.scorePercent}
+            verdict={compat.verdict}
+            roast={compat.shareableRoastCN}
+          />
+        </section>
 
         {/* ================= Bottom CTA ================= */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 pt-8 pb-24 text-center">

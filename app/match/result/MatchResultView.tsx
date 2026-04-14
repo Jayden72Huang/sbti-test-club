@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { TypePoster } from '@/components/shared/TypePoster';
+import { MatchShareSection } from '@/components/shared/MatchShareSection';
 
 const verdictClass: Record<Verdict, string> = {
   destiny: 'text-pink-400 border-pink-500/50 bg-pink-500/10',
@@ -213,8 +214,17 @@ export default function MatchResultView() {
             </CardContent>
           </Card>
 
+          {/* Share */}
+          <MatchShareSection
+            type1={{ code: type1.code, nameCN: type1.nameCN, emoji: type1.emoji, color: type1.color }}
+            type2={{ code: type2.code, nameCN: type2.nameCN, emoji: type2.emoji, color: type2.color }}
+            scorePercent={compat.scorePercent}
+            verdict={compat.verdict}
+            roast={compat.shareableRoastCN}
+          />
+
           {/* CTAs */}
-          <div className="flex flex-wrap gap-4 justify-center pt-4">
+          <div className="flex flex-wrap gap-4 justify-center pt-8">
             <Link href="/match">
               <Button variant="outline" size="lg">
                 再测一对
