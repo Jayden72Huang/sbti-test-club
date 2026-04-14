@@ -75,9 +75,13 @@ export function PaywallGate({
     if (checkoutUrl) {
       window.location.href = checkoutUrl;
     } else {
-      // Dev/demo mode: unlock immediately
-      unlockProduct(productId);
-      setUnlocked(true);
+      // No checkout URL set — show alert in production, unlock in localhost
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        unlockProduct(productId);
+        setUnlocked(true);
+      } else {
+        alert('Payment is being set up. Please check back soon!');
+      }
     }
   };
 
@@ -124,10 +128,12 @@ export function PaywallGate({
           {/* Feature bullets */}
           <div className="mt-5 grid grid-cols-2 gap-2 text-left">
             {[
-              '🔥 最可能吵的 5 件事',
-              '💝 约会建议',
-              '💚 相处 Tips',
-              '✂️ 灵魂吐槽文案',
+              '📊 15 维度雷达对比',
+              '🪞 五大模型解读',
+              '💬 沟通方式指南',
+              '🛡️ 冲突解决指南',
+              '🔥 吵架清单 + 约会建议',
+              '📈 关系阶段预测',
             ].map((item) => (
               <div
                 key={item}
