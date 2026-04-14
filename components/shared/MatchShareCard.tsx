@@ -64,8 +64,40 @@ function useQrDataUrl(value: string): string | null {
   return dataUrl;
 }
 
+/**
+ * Convert an image URL to a base64 data URL via canvas.
+ * This ensures html-to-image can capture the image on all platforms
+ * (mobile browsers often block cross-origin or cached image capture).
+ */
+function useImageDataUrl(src: string | null): string | null {
+  const [dataUrl, setDataUrl] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    if (!src) return;
+    let cancelled = false;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      if (cancelled) return;
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        setDataUrl(canvas.toDataURL('image/png'));
+      }
+    };
+    img.src = src;
+    return () => {
+      cancelled = true;
+    };
+  }, [src]);
+  return dataUrl;
+}
+
 function TypeImg({ code, emoji }: { code: string; emoji: string }) {
   const src = getTypeImage(code);
+  const dataUrl = useImageDataUrl(src);
   if (!src) {
     return (
       <div className="size-full flex items-center justify-center text-3xl">
@@ -73,9 +105,12 @@ function TypeImg({ code, emoji }: { code: string; emoji: string }) {
       </div>
     );
   }
-  return (
-    // Plain <img> instead of next/image for reliable html-to-image export
-    <img src={src} alt={code} className="size-full object-cover" />
+  return dataUrl ? (
+    <img src={dataUrl} alt={code} className="size-full object-cover" />
+  ) : (
+    <div className="size-full flex items-center justify-center text-3xl animate-pulse bg-white/10">
+      {emoji}
+    </div>
   );
 }
 
