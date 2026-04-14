@@ -3,10 +3,13 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/Button';
 
+/** Default Stripe Payment Link from env. Set NEXT_PUBLIC_STRIPE_MATCH_REPORT_URL in Vercel. */
+const DEFAULT_CHECKOUT_URL = process.env.NEXT_PUBLIC_STRIPE_MATCH_REPORT_URL || '';
+
 export interface PaywallGateProps {
   /** Unique key for this purchasable item (stored in localStorage). */
   productId: string;
-  /** Stripe Payment Link URL or checkout redirect. */
+  /** Stripe Payment Link URL or checkout redirect. Falls back to env var. */
   checkoutUrl?: string;
   /** Display price label, e.g. "$2.99" or "¥9.9". */
   priceLabel?: string;
@@ -71,9 +74,16 @@ export function PaywallGate({
 
   const buttonLabel = ctaText || `🔓 ${headline} ${priceLabel}`;
 
+  const resolvedUrl = checkoutUrl || DEFAULT_CHECKOUT_URL;
+
   const handleClick = () => {
-    if (checkoutUrl) {
-      window.location.href = checkoutUrl;
+    if (resolvedUrl) {
+      // Append current page URL as return destination so Stripe redirects back here
+      const returnUrl = new URL(window.location.href);
+      returnUrl.searchParams.set('unlocked', productId);
+      // Store the return URL in sessionStorage so we can verify on return
+      sessionStorage.setItem('sbti-checkout-return', returnUrl.toString());
+      window.location.href = resolvedUrl;
     } else {
       // No checkout URL set — show alert in production, unlock in localhost
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
