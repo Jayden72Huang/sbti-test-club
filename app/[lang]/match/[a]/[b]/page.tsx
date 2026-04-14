@@ -22,6 +22,8 @@ import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
 import { MatchShareSection } from '@/components/shared/MatchShareSection';
 import { PaywallGate } from '@/components/shared/PaywallGate';
+import { FullMatchReport } from '@/components/shared/FullMatchReport';
+import { generateFullMatchReport } from '@/lib/match-report';
 
 import {
   sbtiTypes,
@@ -283,6 +285,12 @@ export default async function MatchPairPage({ params }: PageProps) {
   const relationshipTips = isEn ? compat.relationshipTipsEN : compat.relationshipTipsCN;
   const roast = isEn ? compat.shareableRoastEN : compat.shareableRoastCN;
 
+  const report = generateFullMatchReport(
+    typeA.pattern, typeB.pattern,
+    typeA.nameCN, typeB.nameCN,
+    typeA.nameEN, typeB.nameEN,
+  );
+
   const faqItems = buildPairFaq(typeA, typeB, compat, isEn);
 
   const schemas = [
@@ -492,94 +500,30 @@ export default async function MatchPairPage({ params }: PageProps) {
 
         {/* ================= Premium gated content ================= */}
         <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <PaywallGate
-          productId={`match-${slugA}-${slugB}`}
-          headline={isEn ? 'Unlock Full Compatibility Report' : '解锁完整配对报告'}
-          description={isEn
-            ? `See what ${nameA} & ${nameB} fight about, best date ideas, and how to make it last`
-            : `看看 ${nameA} 和 ${nameB} 最可能因为什么吵架、最适合一起做什么、怎样相处更长久`}
-          priceLabel="$2.99"
-          ctaText={isEn ? '🔓 Unlock Full Report $2.99' : undefined}
-        >
-
-        {/* ================= 5 Fights ================= */}
-        <section className="py-8">
-          <header className="mb-5">
-            <Badge variant="default">{isEn ? '5 Most Likely Fights' : '最可能吵的 5 件事'}</Badge>
-            <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              {isEn
-                ? `What ${typeA.code} and ${typeB.code} Fight About`
-                : `${typeA.code} 和 ${typeB.code} 会为什么吵架`}
-            </h2>
-          </header>
-          <ul className="space-y-3">
-            {fights.map((fight, i) => (
-              <li
-                key={`fight-${i}`}
-                className="flex gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4"
-              >
-                <span className="text-sm font-black text-rose-400 shrink-0">
-                  #{i + 1}
-                </span>
-                <span className="text-sm sm:text-base text-zinc-200 leading-relaxed">
-                  {fight}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        {/* ================= Date Ideas ================= */}
-        <section className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
-          <header className="mb-5">
-            <Badge variant="default">{isEn ? 'Date Ideas' : '约会建议'}</Badge>
-            <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              {isEn
-                ? `Best Date Ideas for ${nameA} & ${nameB}`
-                : `${nameA}和${nameB}适合做什么`}
-            </h2>
-          </header>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {dateIdeas.map((idea, i) => (
-              <div
-                key={`date-${i}`}
-                className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-4"
-              >
-                <div className="text-[10px] font-black uppercase tracking-wider text-purple-300">
-                  Idea {i + 1}
-                </div>
-                <p className="mt-1.5 text-sm text-zinc-200 leading-relaxed">
-                  {idea}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* ================= Relationship Tips ================= */}
-        <section className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
-          <header className="mb-5">
-            <Badge variant="default">{isEn ? 'Relationship Tips' : '相处 tips'}</Badge>
-            <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              {isEn ? 'Tips for Going the Distance' : '走到最后需要注意什么'}
-            </h2>
-          </header>
-          <div className="space-y-3">
-            {relationshipTips.map((tip, i) => (
-              <div
-                key={`tip-${i}`}
-                className="flex gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4"
-              >
-                <span className="text-emerald-400 shrink-0">✓</span>
-                <p className="text-sm sm:text-base text-zinc-200 leading-relaxed">
-                  {tip}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        </PaywallGate>
+          <PaywallGate
+            productId={`match-${slugA}-${slugB}`}
+            headline={isEn ? 'Unlock Full Compatibility Report' : '解锁完整配对报告'}
+            description={isEn
+              ? '15-dimension radar comparison · 5 model breakdowns · communication guide · conflict resolution · relationship phases · fight list · date ideas'
+              : '15 维度雷达对比 · 五大模型解读 · 沟通指南 · 冲突解决 · 关系阶段预测 · 吵架清单 · 约会建议'}
+            priceLabel="$2.99"
+            ctaText={isEn ? '🔓 Unlock Full Report $2.99' : undefined}
+          >
+            <FullMatchReport
+              report={report}
+              name1={nameA}
+              name2={nameB}
+              code1={typeA.code}
+              code2={typeB.code}
+              color1={typeA.color}
+              color2={typeB.color}
+              fights={fights}
+              dateIdeas={dateIdeas}
+              tips={relationshipTips}
+              roast={roast}
+              locale={locale}
+            />
+          </PaywallGate>
         </div>
 
         {/* ================= Two types deep links ================= */}

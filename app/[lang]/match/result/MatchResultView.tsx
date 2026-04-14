@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/Button';
 import { TypePoster } from '@/components/shared/TypePoster';
 import { MatchShareSection } from '@/components/shared/MatchShareSection';
 import { PaywallGate } from '@/components/shared/PaywallGate';
+import { FullMatchReport } from '@/components/shared/FullMatchReport';
+import { generateFullMatchReport } from '@/lib/match-report';
 
 const verdictClass: Record<Verdict, string> = {
   destiny: 'text-pink-400 border-pink-500/50 bg-pink-500/10',
@@ -56,6 +58,11 @@ export default function MatchResultView() {
 
   const compat = getCompatibility(t1, t2, type1.pattern, type2.pattern);
   const verdictCss = verdictClass[compat.verdict];
+  const report = generateFullMatchReport(
+    type1.pattern, type2.pattern,
+    type1.nameCN, type2.nameCN,
+    type1.nameEN, type2.nameEN,
+  );
 
   const hasContext = age1 || age2 || gender1 || gender2 || city;
 
@@ -173,88 +180,28 @@ export default function MatchResultView() {
             roast={compat.shareableRoastCN}
           />
 
-          {/* Paywall content */}
+          {/* Full report — gated */}
           <div className="mt-8">
             <PaywallGate
-                productId={`match-${t1}-${t2}`}
-                headline="解锁完整配对报告"
-                description={`看看 ${type1.nameCN} 和 ${type2.nameCN} 最可能因为什么吵架、最适合一起做什么、怎样相处更长久`}
-                priceLabel="$2.99"
-              >
-                {/* 5 件吵的事 */}
-                <Card className="mb-6">
-                  <CardHeader>
-                    <CardTitle className="text-red-400 flex items-center gap-2">
-                      🔥 最可能吵的 5 件事
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ol className="space-y-3">
-                      {compat.fightsCN.map((f, i) => (
-                        <li key={i} className="flex gap-3 text-zinc-300">
-                          <span className="text-red-400 font-black flex-shrink-0 w-6">
-                            {i + 1}.
-                          </span>
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </CardContent>
-                </Card>
-
-                {/* 约会建议 */}
-                <Card className="mb-6">
-                  <CardHeader>
-                    <CardTitle className="text-pink-400 flex items-center gap-2">
-                      💝 约会建议
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3">
-                      {compat.dateIdeasCN.map((d, i) => (
-                        <li key={i} className="flex gap-3 text-zinc-300">
-                          <span className="text-pink-400 flex-shrink-0">•</span>
-                          <span>{d}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                {/* 相处 Tips */}
-                <Card className="mb-6">
-                  <CardHeader>
-                    <CardTitle className="text-green-400 flex items-center gap-2">
-                      💚 相处 Tips
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3">
-                      {compat.relationshipTipsCN.map((r, i) => (
-                        <li key={i} className="flex gap-3 text-zinc-300">
-                          <span className="text-green-400 flex-shrink-0">•</span>
-                          <span>{r}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                {/* Shareable Roast */}
-                <Card className="bg-gradient-to-br from-purple-900/40 via-pink-900/30 to-purple-900/40 border-purple-500/50">
-                  <CardContent className="p-8 text-center">
-                    <Badge variant="secondary" className="mb-4">
-                      ✂️ 可分享吐槽
-                    </Badge>
-                    <p className="text-xl sm:text-2xl font-bold italic text-white">
-                      「{compat.shareableRoastCN}」
-                    </p>
-                    <p className="text-xs text-zinc-400 mt-4">
-                      截图分享到小红书 / 朋友圈 / 微博，让大家看看你们有多扎心
-                    </p>
-                  </CardContent>
-                </Card>
-              </PaywallGate>
+              productId={`match-${t1}-${t2}`}
+              headline="解锁完整配对报告"
+              description={`15 维度雷达对比 · 五大模型解读 · 沟通指南 · 冲突解决 · 关系阶段预测 · 吵架清单 · 约会建议`}
+              priceLabel="$2.99"
+            >
+              <FullMatchReport
+                report={report}
+                name1={type1.nameCN}
+                name2={type2.nameCN}
+                code1={type1.code}
+                code2={type2.code}
+                color1={type1.color}
+                color2={type2.color}
+                fights={compat.fightsCN}
+                dateIdeas={compat.dateIdeasCN}
+                tips={compat.relationshipTipsCN}
+                roast={compat.shareableRoastCN}
+              />
+            </PaywallGate>
           </div>
 
           {/* CTAs */}
