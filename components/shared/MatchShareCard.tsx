@@ -96,7 +96,7 @@ export function MatchShareCard({
   return (
     <div
       className={cn(
-        'relative w-full aspect-[4/5] overflow-hidden rounded-3xl p-6 text-white',
+        'relative w-full overflow-hidden rounded-3xl p-6 pb-5 text-white',
         'bg-gradient-to-br from-zinc-950 via-purple-950 to-zinc-950',
         'border border-purple-500/30 shadow-2xl shadow-purple-900/50',
         className,
@@ -112,7 +112,7 @@ export function MatchShareCard({
         className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-pink-500/20 blur-3xl"
       />
 
-      <div className="relative flex h-full flex-col">
+      <div className="relative flex flex-col gap-0">
         {/* Header */}
         <div className="flex items-start justify-between">
           <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em]">
@@ -173,7 +173,7 @@ export function MatchShareCard({
         </div>
 
         {/* Summary + Roast */}
-        <div className="mt-4 flex flex-col gap-2.5 flex-1 min-h-0">
+        <div className="mt-4 flex flex-col gap-2.5">
           <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5">
             <p className="text-center text-[11px] leading-relaxed text-zinc-300 line-clamp-3">
               {summary}
@@ -187,7 +187,7 @@ export function MatchShareCard({
         </div>
 
         {/* Footer (Logo + QR) */}
-        <div className="mt-auto pt-3 flex items-center justify-between gap-3 border-t border-white/10">
+        <div className="mt-5 pt-3 flex items-center justify-between gap-3 border-t border-white/10">
           <div className="flex items-center gap-2.5 min-w-0 flex-1">
             {/* Inline logo SVG — embedded for html-to-image reliability */}
             <svg
