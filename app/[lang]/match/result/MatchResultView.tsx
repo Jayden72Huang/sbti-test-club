@@ -131,6 +131,15 @@ export default function MatchResultView() {
             )}
           </div>
 
+          {/* Share — placed right after score for visibility */}
+          <MatchShareSection
+            type1={{ code: type1.code, nameCN: type1.nameCN, emoji: type1.emoji, color: type1.color }}
+            type2={{ code: type2.code, nameCN: type2.nameCN, emoji: type2.emoji, color: type2.color }}
+            scorePercent={compat.scorePercent}
+            verdict={compat.verdict}
+            roast={compat.shareableRoastCN}
+          />
+
           {/* Summary */}
           <Card className="mb-6 border-purple-500/30 bg-purple-500/5">
             <CardContent className="p-6">
@@ -213,15 +222,6 @@ export default function MatchResultView() {
               </p>
             </CardContent>
           </Card>
-
-          {/* Share */}
-          <MatchShareSection
-            type1={{ code: type1.code, nameCN: type1.nameCN, emoji: type1.emoji, color: type1.color }}
-            type2={{ code: type2.code, nameCN: type2.nameCN, emoji: type2.emoji, color: type2.color }}
-            scorePercent={compat.scorePercent}
-            verdict={compat.verdict}
-            roast={compat.shareableRoastCN}
-          />
 
           {/* CTAs */}
           <div className="flex flex-wrap gap-4 justify-center pt-8">

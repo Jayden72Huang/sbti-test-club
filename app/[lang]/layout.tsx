@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import './globals.css';
+import '../globals.css';
 import { SchemaJsonLd } from '@/components/shared/SchemaJsonLd';
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics';
 import { SITE_NAME, SITE_URL, buildMetadata } from '@/lib/metadata';
 import { organizationSchema, webApplicationSchema } from '@/lib/schema';
+import { isValidLocale, type Locale } from '@/lib/i18n';
+import { notFound } from 'next/navigation';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -69,14 +71,25 @@ export const viewport: Viewport = {
   colorScheme: 'dark',
 };
 
-export default function RootLayout({
+export async function generateStaticParams() {
+  return [{ lang: 'zh' }, { lang: 'en' }];
+}
+
+export default async function RootLayout({
   children,
-}: Readonly<{
+  params,
+}: {
   children: React.ReactNode;
-}>) {
+  params: Promise<{ lang: string }>;
+}) {
+  const { lang } = await params;
+  if (!isValidLocale(lang)) notFound();
+
+  const htmlLang = lang === 'en' ? 'en' : 'zh-CN';
+
   return (
     <html
-      lang="zh-CN"
+      lang={htmlLang}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-zinc-950 text-zinc-100">

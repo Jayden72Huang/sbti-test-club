@@ -29,15 +29,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const entries: MetadataRoute.Sitemap = [];
 
-  // Note: /en/* URLs are intentionally NOT emitted. The English locale has
-  // no route implementation today, so listing them in the sitemap pointed
-  // Google at 31 guaranteed 404s. Re-add when app/[locale]/... ships.
+  // Emit both Chinese (root) and English (/en) URLs.
   for (const r of staticRoutes) {
     entries.push({
       url: `${SITE_URL}${r.path}`,
       lastModified: now,
       changeFrequency: r.changeFrequency,
       priority: r.priority,
+    });
+    entries.push({
+      url: `${SITE_URL}/en${r.path}`,
+      lastModified: now,
+      changeFrequency: r.changeFrequency,
+      priority: r.priority * 0.9,
     });
   }
 
@@ -47,6 +51,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: now,
       changeFrequency: 'monthly',
       priority: 0.8,
+    });
+    entries.push({
+      url: `${SITE_URL}/en/type/${t.slug}`,
+      lastModified: now,
+      changeFrequency: 'monthly',
+      priority: 0.7,
     });
   }
 
@@ -79,7 +89,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // the sitemap so Google never discovers the algorithmic fallback output.
   // Source of truth is app/match/[a]/[b]/page.tsx `getAuthoredPairs()` to
   // guarantee the sitemap can never drift from the SSG route set.
-  const { getAuthoredPairs } = await import('./match/[a]/[b]/page');
+  const { getAuthoredPairs } = await import('./[lang]/match/[a]/[b]/page');
   const authoredPairs = getAuthoredPairs();
   for (const { a, b } of authoredPairs) {
     entries.push({

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/cn';
+import { type Locale, localePath } from '@/lib/i18n';
 
 export interface FooterLink {
   href: string;
@@ -9,24 +10,29 @@ export interface FooterLink {
 }
 
 export interface FooterProps {
+  locale?: Locale;
+  /** @deprecated Use locale instead */
   localePrefix?: string;
   friendLinks?: FooterLink[];
   className?: string;
 }
 
 export function Footer({
+  locale,
   localePrefix = '',
   friendLinks = [],
   className,
 }: FooterProps) {
-  const isEn = localePrefix === '/en';
+  const isEn = locale === 'en' || localePrefix === '/en';
   const year = new Date().getFullYear();
+
+  const loc: Locale = isEn ? 'en' : 'zh';
 
   const productLinks: FooterLink[] = isEn
     ? [
-        { href: '/en/test', label: 'Take the test' },
-        { href: '/en/types', label: '27 SBTI types' },
-        { href: '/en/match', label: 'Type matching' },
+        { href: localePath('/test', loc), label: 'Take the test' },
+        { href: localePath('/types', loc), label: '27 SBTI types' },
+        { href: localePath('/match', loc), label: 'Type matching' },
       ]
     : [
         { href: '/test', label: '开始测试' },
@@ -36,9 +42,9 @@ export function Footer({
 
   const aboutLinks: FooterLink[] = isEn
     ? [
-        { href: '/en/about', label: 'About SBTI' },
-        { href: '/en/faq', label: 'FAQ' },
-        { href: '/en/privacy', label: 'Privacy' },
+        { href: localePath('/about', loc), label: 'About SBTI' },
+        { href: localePath('/faq', loc), label: 'FAQ' },
+        { href: localePath('/privacy', loc), label: 'Privacy' },
       ]
     : [
         { href: '/about', label: '关于 SBTI' },
@@ -57,7 +63,7 @@ export function Footer({
         <div className="grid gap-10 md:grid-cols-4">
           <div className="md:col-span-1">
             <Link
-              href={isEn ? '/en' : '/'}
+              href={localePath('/', loc)}
               className="flex items-center gap-2 font-black tracking-tight text-white text-lg"
             >
               <span

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { buildMetadata } from '@/lib/metadata';
+import { type Locale, localePath } from '@/lib/i18n';
 import {
   articleSchema,
   breadcrumbSchema,
@@ -38,7 +39,7 @@ import {
 // Route params / SSG
 // ---------------------------------------------------------------------------
 
-type RouteParams = { a: string; b: string };
+type RouteParams = { lang: string; a: string; b: string };
 interface PageProps {
   params: Promise<RouteParams>;
 }
@@ -64,9 +65,9 @@ export const dynamicParams = false;
  * hand-written compatibility data. Computed once at module load so both
  * generateStaticParams and sitemap can import it.
  */
-export function getAuthoredPairs(): RouteParams[] {
+export function getAuthoredPairs(): { a: string; b: string }[] {
   const seen = new Set<string>();
-  const out: RouteParams[] = [];
+  const out: { a: string; b: string }[] = [];
   for (const c of compatibilityData) {
     const typeA = sbtiTypesByCode[c.type1];
     const typeB = sbtiTypesByCode[c.type2];
@@ -84,7 +85,13 @@ export function getAuthoredPairs(): RouteParams[] {
 }
 
 export async function generateStaticParams(): Promise<RouteParams[]> {
-  return getAuthoredPairs();
+  const pairs = getAuthoredPairs();
+  const params: RouteParams[] = [];
+  for (const { a, b } of pairs) {
+    params.push({ lang: 'zh', a, b });
+    params.push({ lang: 'en', a, b });
+  }
+  return params;
 }
 
 // ---------------------------------------------------------------------------
@@ -97,6 +104,14 @@ const verdictLabelCN: Record<Verdict, string> = {
   fine: '可以相处 🤝',
   rocky: '有点坎坷 ⚡',
   doomed: '难以共存 💀',
+};
+
+const verdictLabelEN: Record<Verdict, string> = {
+  destiny: 'Soulmates 💍',
+  great: 'Great Match 💚',
+  fine: 'Decent Pair 🤝',
+  rocky: 'Rocky Road ⚡',
+  doomed: 'Doomed 💀',
 };
 
 const verdictClass: Record<Verdict, string> = {
@@ -116,7 +131,34 @@ function buildPairFaq(
   a: SbtiType,
   b: SbtiType,
   compat: Compatibility,
+  isEn: boolean,
 ): FaqItem[] {
+  if (isEn) {
+    const fightsShort = compat.fightsEN.slice(0, 3).join('; ');
+    return [
+      {
+        q: `Are SBTI ${a.code} and ${b.code} compatible? What's their match score?`,
+        a: `${a.nameEN} (${a.code}) and ${b.nameEN} (${b.code}) have an SBTI compatibility score of ${compat.scorePercent}%, rated "${verdictLabelEN[compat.verdict]}". ${compat.summaryEN}`,
+      },
+      {
+        q: `What do ${a.code} and ${b.code} fight about most?`,
+        a: `${a.nameEN} (${a.code}) paired with ${b.nameEN} (${b.code}) — the top 3 fight triggers are: ${fightsShort}. See all 5 common fights in the section above.`,
+      },
+      {
+        q: `What are good date ideas for ${a.nameEN} and ${b.nameEN}?`,
+        a: `We've picked 3 date ideas tailored for the ${a.code} × ${b.code} pair, including: ${compat.dateIdeasEN.slice(0, 2).join(', ')}, and more. See the full list in the date ideas section.`,
+      },
+      {
+        q: `Can ${a.code} and ${b.code} last long-term?`,
+        a: `Based on SBTI's 15-dimension algorithm and manual calibration, ${a.nameEN} (${a.code}) and ${b.nameEN} (${b.code}) fall into the "${verdictLabelEN[compat.verdict]}" category. ${compat.scorePercent >= 70 ? 'Overall their long-term outlook is optimistic, as long as both give each other room to grow.' : compat.scorePercent >= 50 ? 'Their relationship requires active effort from both sides — chemistry alone won\'t cut it.' : 'The challenges are significant — they\'ll need very intentional communication and boundaries.'}`,
+      },
+      {
+        q: `How is SBTI compatibility calculated?`,
+        a: `SBTI pairing is based on the Manhattan distance of 15-dimension personality vectors. The pattern difference between ${a.code} (${a.pattern}) and ${b.code} (${b.pattern}) is converted into a 0–100 match percentage, then refined with manually calibrated verdicts (destiny / great / fine / rocky / doomed) for relationship advice. Completely free, no sign-up required.`,
+      },
+    ];
+  }
+
   const fightsShort = compat.fightsCN.slice(0, 3).join('；');
   return [
     {
@@ -149,7 +191,9 @@ function buildPairFaq(
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { a, b } = await params;
+  const { lang, a, b } = await params;
+  const locale = lang as Locale;
+  const isEn = locale === 'en';
   const slugA = a.toLowerCase();
   const slugB = b.toLowerCase();
   const typeA = sbtiTypesBySlug[slugA];
@@ -157,8 +201,8 @@ export async function generateMetadata({
 
   if (!typeA || !typeB || slugA === slugB) {
     return buildMetadata({
-      title: 'SBTI 配对未找到',
-      description: '该 SBTI 配对组合不存在。',
+      title: isEn ? 'SBTI Match Not Found' : 'SBTI 配对未找到',
+      description: isEn ? 'This SBTI match combination does not exist.' : '该 SBTI 配对组合不存在。',
       path: `/match/${a}/${b}`,
       noIndex: true,
     });
@@ -171,27 +215,35 @@ export async function generateMetadata({
     typeB.pattern,
   );
 
-  const title = `SBTI ${typeA.code} × ${typeB.code} 配对 · ${typeA.nameCN}和${typeB.nameCN}合不合（${compat.scorePercent}% ${verdictLabelCN[compat.verdict]}）`;
-  const description = `SBTI ${typeA.code} ${typeA.nameCN} 与 ${typeB.code} ${typeB.nameCN} 的情侣配对深度分析：匹配度 ${compat.scorePercent}%，5 件最可能吵的事，3 条约会建议，3 条相处 tips，一句可分享吐槽。免费无需注册。`;
+  const verdictLabel = isEn ? verdictLabelEN[compat.verdict] : verdictLabelCN[compat.verdict];
+  const nameA = isEn ? typeA.nameEN : typeA.nameCN;
+  const nameB = isEn ? typeB.nameEN : typeB.nameCN;
+
+  const title = isEn
+    ? `SBTI ${typeA.code} × ${typeB.code} Match · ${nameA} & ${nameB} Compatibility (${compat.scorePercent}% ${verdictLabel})`
+    : `SBTI ${typeA.code} × ${typeB.code} 配对 · ${nameA}和${nameB}合不合（${compat.scorePercent}% ${verdictLabel}）`;
+  const description = isEn
+    ? `SBTI ${typeA.code} ${nameA} & ${typeB.code} ${nameB} couple compatibility deep dive: ${compat.scorePercent}% match, 5 common fights, 3 date ideas, 3 relationship tips, and a shareable roast. Free, no sign-up.`
+    : `SBTI ${typeA.code} ${nameA} 与 ${typeB.code} ${nameB} 的情侣配对深度分析：匹配度 ${compat.scorePercent}%，5 件最可能吵的事，3 条约会建议，3 条相处 tips，一句可分享吐槽。免费无需注册。`;
 
   return buildMetadata({
     title,
     description,
-    path: `/match/${slugA}/${slugB}`,
+    path: localePath(`/match/${slugA}/${slugB}`, locale),
     keywords: [
       `SBTI ${typeA.code} ${typeB.code}`,
-      `SBTI ${typeA.nameCN} ${typeB.nameCN}`,
-      `${typeA.code} 和 ${typeB.code} 合不合`,
-      `${typeA.nameCN}配${typeB.nameCN}`,
-      'SBTI 配对',
-      'SBTI 情侣测试',
+      `SBTI ${nameA} ${nameB}`,
+      isEn ? `${typeA.code} and ${typeB.code} compatibility` : `${typeA.code} 和 ${typeB.code} 合不合`,
+      isEn ? `${nameA} x ${nameB}` : `${nameA}配${nameB}`,
+      isEn ? 'SBTI match' : 'SBTI 配对',
+      isEn ? 'SBTI couple test' : 'SBTI 情侣测试',
       `SBTI ${typeA.code}`,
       `SBTI ${typeB.code}`,
-      '沙雕人格配对',
+      isEn ? 'personality match' : '沙雕人格配对',
       'SBTI couple match',
       `${typeA.code} x ${typeB.code} compatibility`,
     ],
-    locale: 'zh',
+    locale,
     type: 'article',
   });
 }
@@ -201,7 +253,9 @@ export async function generateMetadata({
 // ---------------------------------------------------------------------------
 
 export default async function MatchPairPage({ params }: PageProps) {
-  const { a, b } = await params;
+  const { lang, a, b } = await params;
+  const locale = lang as Locale;
+  const isEn = locale === 'en';
   const slugA = a.toLowerCase();
   const slugB = b.toLowerCase();
 
@@ -219,21 +273,32 @@ export default async function MatchPairPage({ params }: PageProps) {
     typeB.pattern,
   );
 
-  const faqItems = buildPairFaq(typeA, typeB, compat);
+  const nameA = isEn ? typeA.nameEN : typeA.nameCN;
+  const nameB = isEn ? typeB.nameEN : typeB.nameCN;
+  const verdictLabel = isEn ? verdictLabelEN[compat.verdict] : verdictLabelCN[compat.verdict];
+  const summary = isEn ? compat.summaryEN : compat.summaryCN;
+  const fights = isEn ? compat.fightsEN : compat.fightsCN;
+  const dateIdeas = isEn ? compat.dateIdeasEN : compat.dateIdeasCN;
+  const relationshipTips = isEn ? compat.relationshipTipsEN : compat.relationshipTipsCN;
+  const roast = isEn ? compat.shareableRoastEN : compat.shareableRoastCN;
+
+  const faqItems = buildPairFaq(typeA, typeB, compat, isEn);
 
   const schemas = [
     articleSchema({
-      title: `SBTI ${typeA.code} × ${typeB.code} 配对分析`,
-      description: compat.summaryCN.slice(0, 160),
-      url: `/match/${slugA}/${slugB}`,
+      title: isEn
+        ? `SBTI ${typeA.code} × ${typeB.code} Match Analysis`
+        : `SBTI ${typeA.code} × ${typeB.code} 配对分析`,
+      description: summary.slice(0, 160),
+      url: localePath(`/match/${slugA}/${slugB}`, locale),
     }),
     faqPageSchema(faqItems),
     breadcrumbSchema([
-      { name: '首页', url: '/' },
-      { name: '情侣配对', url: '/match' },
+      { name: isEn ? 'Home' : '首页', url: localePath('/', locale) },
+      { name: isEn ? 'Match' : '情侣配对', url: localePath('/match', locale) },
       {
         name: `${typeA.code} × ${typeB.code}`,
-        url: `/match/${slugA}/${slugB}`,
+        url: localePath(`/match/${slugA}/${slugB}`, locale),
       },
     ]),
   ];
@@ -261,7 +326,7 @@ export default async function MatchPairPage({ params }: PageProps) {
         id={`schema-pair-${slugA}-${slugB}`}
       />
 
-      <Nav />
+      <Nav locale={locale} />
 
       <main className="min-h-screen bg-zinc-950 text-zinc-100">
         {/* ================= Breadcrumb ================= */}
@@ -271,14 +336,14 @@ export default async function MatchPairPage({ params }: PageProps) {
         >
           <ol className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
             <li>
-              <Link href="/" className="hover:text-purple-300">
-                首页
+              <Link href={localePath('/', locale)} className="hover:text-purple-300">
+                {isEn ? 'Home' : '首页'}
               </Link>
             </li>
             <li aria-hidden>/</li>
             <li>
-              <Link href="/match" className="hover:text-purple-300">
-                情侣配对
+              <Link href={localePath('/match', locale)} className="hover:text-purple-300">
+                {isEn ? 'Match' : '情侣配对'}
               </Link>
             </li>
             <li aria-hidden>/</li>
@@ -301,7 +366,7 @@ export default async function MatchPairPage({ params }: PageProps) {
             {/* Two posters */}
             <div className="flex items-center justify-center gap-4 sm:gap-8">
               <Link
-                href={`/type/${typeA.slug}`}
+                href={localePath(`/type/${typeA.slug}`, locale)}
                 className="group flex flex-col items-center gap-3"
               >
                 <TypePoster
@@ -320,7 +385,7 @@ export default async function MatchPairPage({ params }: PageProps) {
                     {typeA.code}
                   </div>
                   <div className="mt-1 text-sm font-bold text-white">
-                    {typeA.nameCN}
+                    {nameA}
                   </div>
                 </div>
               </Link>
@@ -333,7 +398,7 @@ export default async function MatchPairPage({ params }: PageProps) {
               </div>
 
               <Link
-                href={`/type/${typeB.slug}`}
+                href={localePath(`/type/${typeB.slug}`, locale)}
                 className="group flex flex-col items-center gap-3"
               >
                 <TypePoster
@@ -352,24 +417,28 @@ export default async function MatchPairPage({ params }: PageProps) {
                     {typeB.code}
                   </div>
                   <div className="mt-1 text-sm font-bold text-white">
-                    {typeB.nameCN}
+                    {nameB}
                   </div>
                 </div>
               </Link>
             </div>
 
             <h1 className="mt-8 text-center text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white">
-              SBTI {typeA.code} × {typeB.code} 配对分析
+              {isEn
+                ? `SBTI ${typeA.code} × ${typeB.code} Match Analysis`
+                : `SBTI ${typeA.code} × ${typeB.code} 配对分析`}
             </h1>
             <p className="mt-3 text-center text-base sm:text-lg text-zinc-400">
-              {typeA.nameCN} 和 {typeB.nameCN} 合不合？
+              {isEn
+                ? `Are ${nameA} and ${nameB} compatible?`
+                : `${nameA} 和 ${nameB} 合不合？`}
             </p>
 
             {/* Score + verdict */}
             <div className="mt-8 flex items-center justify-center gap-4">
               <div className="text-center">
                 <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500">
-                  匹配度 · Match
+                  {isEn ? 'Compatibility · Score' : '匹配度 · Match'}
                 </div>
                 <div className="mt-1 text-5xl sm:text-6xl font-black tracking-tight text-white">
                   {compat.scorePercent}
@@ -379,7 +448,7 @@ export default async function MatchPairPage({ params }: PageProps) {
               <div
                 className={`rounded-full border px-4 py-2 text-sm font-black ${verdictClass[compat.verdict]}`}
               >
-                {verdictLabelCN[compat.verdict]}
+                {verdictLabel}
               </div>
             </div>
           </div>
@@ -394,15 +463,16 @@ export default async function MatchPairPage({ params }: PageProps) {
             }}
           >
             <div className="text-[11px] font-black uppercase tracking-[0.2em] text-purple-300">
-              TL;DR · 一句话读懂这对 CP
+              {isEn ? 'TL;DR · This Pair in One Line' : 'TL;DR · 一句话读懂这对 CP'}
             </div>
             <p className="mt-3 text-base sm:text-lg leading-relaxed text-white">
               <strong>
-                SBTI {typeA.code}（{typeA.nameCN}）× {typeB.code}（
-                {typeB.nameCN}）
+                SBTI {typeA.code}（{nameA}）× {typeB.code}（
+                {nameB}）
               </strong>{' '}
-              的匹配度是 <strong>{compat.scorePercent}%</strong>，属于「
-              {verdictLabelCN[compat.verdict]}」级别。{compat.summaryCN}
+              {isEn
+                ? <>scored <strong>{compat.scorePercent}%</strong> compatibility, rated &ldquo;{verdictLabel}&rdquo;. {summary}</>
+                : <>的匹配度是 <strong>{compat.scorePercent}%</strong>，属于「{verdictLabel}」级别。{summary}</>}
             </p>
           </div>
         </section>
@@ -411,10 +481,10 @@ export default async function MatchPairPage({ params }: PageProps) {
         <section className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
           <div className="rounded-2xl border border-pink-500/40 bg-gradient-to-br from-pink-900/30 to-purple-900/30 p-6 sm:p-8 text-center">
             <div className="text-[11px] font-black uppercase tracking-[0.2em] text-pink-300 mb-3">
-              一句灵魂吐槽 · Shareable Roast
+              {isEn ? 'Shareable Roast' : '一句灵魂吐槽 · Shareable Roast'}
             </div>
             <p className="text-lg sm:text-xl italic text-white leading-relaxed">
-              「{compat.shareableRoastCN}」
+              {isEn ? `"${roast}"` : `「${roast}」`}
             </p>
           </div>
         </section>
@@ -422,13 +492,15 @@ export default async function MatchPairPage({ params }: PageProps) {
         {/* ================= 5 Fights ================= */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
           <header className="mb-5">
-            <Badge variant="default">最可能吵的 5 件事</Badge>
+            <Badge variant="default">{isEn ? '5 Most Likely Fights' : '最可能吵的 5 件事'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              {typeA.code} 和 {typeB.code} 会为什么吵架
+              {isEn
+                ? `What ${typeA.code} and ${typeB.code} Fight About`
+                : `${typeA.code} 和 ${typeB.code} 会为什么吵架`}
             </h2>
           </header>
           <ul className="space-y-3">
-            {compat.fightsCN.map((fight, i) => (
+            {fights.map((fight, i) => (
               <li
                 key={`fight-${i}`}
                 className="flex gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4"
@@ -447,13 +519,15 @@ export default async function MatchPairPage({ params }: PageProps) {
         {/* ================= Date Ideas ================= */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
           <header className="mb-5">
-            <Badge variant="default">约会建议</Badge>
+            <Badge variant="default">{isEn ? 'Date Ideas' : '约会建议'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              {typeA.nameCN}和{typeB.nameCN}适合做什么
+              {isEn
+                ? `Best Date Ideas for ${nameA} & ${nameB}`
+                : `${nameA}和${nameB}适合做什么`}
             </h2>
           </header>
           <div className="grid gap-3 sm:grid-cols-3">
-            {compat.dateIdeasCN.map((idea, i) => (
+            {dateIdeas.map((idea, i) => (
               <div
                 key={`date-${i}`}
                 className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-4"
@@ -472,13 +546,13 @@ export default async function MatchPairPage({ params }: PageProps) {
         {/* ================= Relationship Tips ================= */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
           <header className="mb-5">
-            <Badge variant="default">相处 tips</Badge>
+            <Badge variant="default">{isEn ? 'Relationship Tips' : '相处 tips'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              走到最后需要注意什么
+              {isEn ? 'Tips for Going the Distance' : '走到最后需要注意什么'}
             </h2>
           </header>
           <div className="space-y-3">
-            {compat.relationshipTipsCN.map((tip, i) => (
+            {relationshipTips.map((tip, i) => (
               <div
                 key={`tip-${i}`}
                 className="flex gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4"
@@ -495,9 +569,11 @@ export default async function MatchPairPage({ params }: PageProps) {
         {/* ================= Two types deep links ================= */}
         <section className="mx-auto max-w-5xl px-4 sm:px-6 py-12">
           <header className="mb-6 text-center">
-            <Badge variant="default">深度了解这两种类型</Badge>
+            <Badge variant="default">{isEn ? 'Explore Both Types' : '深度了解这两种类型'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              看完 {typeA.code} 和 {typeB.code} 的完整人格画像
+              {isEn
+                ? `Full Personality Profiles: ${typeA.code} & ${typeB.code}`
+                : `看完 ${typeA.code} 和 ${typeB.code} 的完整人格画像`}
             </h2>
           </header>
           <div className="grid gap-5 md:grid-cols-2">
@@ -519,21 +595,21 @@ export default async function MatchPairPage({ params }: PageProps) {
                       {t.code}
                     </div>
                     <div className="mt-1 text-lg font-black text-white">
-                      {t.nameCN}
+                      {isEn ? t.nameEN : t.nameCN}
                     </div>
                     <p className="mt-1 text-xs text-zinc-500 line-clamp-2">
-                      {t.tagline.zh}
+                      {isEn ? t.tagline.en : t.tagline.zh}
                     </p>
                   </div>
                 </div>
                 <p className="mt-4 text-sm text-zinc-400 line-clamp-3 leading-relaxed">
-                  {t.oneLinerCN}
+                  {isEn ? t.oneLinerEN : t.oneLinerCN}
                 </p>
                 <Link
-                  href={`/type/${t.slug}`}
+                  href={localePath(`/type/${t.slug}`, locale)}
                   className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-purple-300 hover:text-purple-200"
                 >
-                  查看 {t.code} 完整解读 →
+                  {isEn ? `View ${t.code} Full Profile →` : `查看 ${t.code} 完整解读 →`}
                 </Link>
               </Card>
             ))}
@@ -543,9 +619,11 @@ export default async function MatchPairPage({ params }: PageProps) {
         {/* ================= FAQ ================= */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 py-12 border-t border-zinc-900">
           <header className="mb-8 text-center">
-            <Badge variant="default">常见问题</Badge>
+            <Badge variant="default">{isEn ? 'FAQ' : '常见问题'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              关于 {typeA.code} × {typeB.code} 配对的 5 个问题
+              {isEn
+                ? `5 Questions About ${typeA.code} × ${typeB.code}`
+                : `关于 ${typeA.code} × ${typeB.code} 配对的 5 个问题`}
             </h2>
           </header>
           <Accordion
@@ -562,16 +640,16 @@ export default async function MatchPairPage({ params }: PageProps) {
         {relatedPairs.length > 0 && (
           <section className="mx-auto max-w-5xl px-4 sm:px-6 py-12 border-t border-zinc-900">
             <header className="mb-6">
-              <Badge variant="default">相关配对</Badge>
+              <Badge variant="default">{isEn ? 'Related Pairs' : '相关配对'}</Badge>
               <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-                你可能也想看看这些 CP
+                {isEn ? 'You Might Also Like These Pairs' : '你可能也想看看这些 CP'}
               </h2>
             </header>
             <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
               {relatedPairs.map(({ p1, p2 }) => (
                 <Link
                   key={`${p1.slug}-${p2.slug}`}
-                  href={`/match/${p1.slug}/${p2.slug}`}
+                  href={localePath(`/match/${p1.slug}/${p2.slug}`, locale)}
                   className="group flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-3 transition-all hover:border-purple-500/50 hover:bg-zinc-900/80"
                 >
                   <div className="flex items-center gap-1">
@@ -590,7 +668,7 @@ export default async function MatchPairPage({ params }: PageProps) {
                     </span>
                   </div>
                   <span className="flex-1 truncate text-sm text-zinc-300 group-hover:text-white">
-                    {p1.nameCN} × {p2.nameCN}
+                    {isEn ? `${p1.nameEN} × ${p2.nameEN}` : `${p1.nameCN} × ${p2.nameCN}`}
                   </span>
                 </Link>
               ))}
@@ -605,30 +683,31 @@ export default async function MatchPairPage({ params }: PageProps) {
             type2={{ code: typeB.code, nameCN: typeB.nameCN, emoji: typeB.emoji, color: typeB.color }}
             scorePercent={compat.scorePercent}
             verdict={compat.verdict}
-            roast={compat.shareableRoastCN}
+            roast={roast}
+            locale={locale}
           />
         </section>
 
         {/* ================= Bottom CTA ================= */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 pt-8 pb-24 text-center">
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-            还不知道自己是哪种 SBTI？
+            {isEn ? "Don't know your SBTI yet?" : '还不知道自己是哪种 SBTI？'}
           </h2>
           <p className="mt-4 text-sm sm:text-base text-zinc-400">
-            31 道题 3 分钟，测完就能和 TA 配对一下
+            {isEn ? '31 questions, 3 minutes — then match with anyone' : '31 道题 3 分钟，测完就能和 TA 配对一下'}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg">
-              <Link href="/test">开始 SBTI 测试 →</Link>
+              <Link href={localePath('/test', locale)}>{isEn ? 'Take the SBTI Test →' : '开始 SBTI 测试 →'}</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/match">回到配对工具</Link>
+              <Link href={localePath('/match', locale)}>{isEn ? 'Back to Match Tool' : '回到配对工具'}</Link>
             </Button>
           </div>
         </section>
       </main>
 
-      <Footer />
+      <Footer locale={locale} />
     </>
   );
 }

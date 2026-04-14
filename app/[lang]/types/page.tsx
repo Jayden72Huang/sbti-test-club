@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { buildMetadata } from '@/lib/metadata';
+import { type Locale } from '@/lib/i18n';
 import {
   articleSchema,
   breadcrumbSchema,
@@ -80,8 +81,11 @@ function dominantGroup(type: SbtiType): GroupKey {
 // Page
 // ---------------------------------------------------------------------------
 
-export default function TypesPage() {
-  const content = seoContent.types.zh;
+export default async function TypesPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const isEn = locale === 'en';
+  const content = seoContent.types[locale] ?? seoContent.types.zh;
 
   // Precompute group assignments on the server so the client bundle stays
   // small. We ship pure serializable data across the boundary.
@@ -122,7 +126,7 @@ export default function TypesPage() {
     <>
       <SchemaJsonLd schema={schemas} id="types-schema" />
 
-      <Nav />
+      <Nav locale={locale} />
 
       <main className="bg-zinc-950 text-zinc-100">
         {/* ================= Hero ================= */}
@@ -143,17 +147,17 @@ export default function TypesPage() {
             <ol className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
               <li>
                 <Link href="/" className="hover:text-purple-300">
-                  首页
+                  {isEn ? 'Home' : '首页'}
                 </Link>
               </li>
               <li aria-hidden>/</li>
-              <li className="text-zinc-300">27 类型</li>
+              <li className="text-zinc-300">{isEn ? '27 Types' : '27 类型'}</li>
             </ol>
           </nav>
 
           <div className="relative mx-auto max-w-4xl px-4 sm:px-6 pt-10 pb-16 sm:pt-14 sm:pb-20 text-center">
             <Badge variant="default" className="mb-5">
-              完整图鉴 · Soul Atlas
+              {isEn ? 'Soul Atlas' : '完整图鉴 · Soul Atlas'}
             </Badge>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white">
               {content.heroTitle}
@@ -163,10 +167,10 @@ export default function TypesPage() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Button asChild size="lg">
-                <Link href="/test">测测我是哪一种 →</Link>
+                <Link href="/test">{isEn ? 'Take the Test →' : '测测我是哪一种 →'}</Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <Link href="/match">做一次配对分析</Link>
+                <Link href="/match">{isEn ? 'Try Match Analysis' : '做一次配对分析'}</Link>
               </Button>
             </div>
           </div>
@@ -204,20 +208,20 @@ export default function TypesPage() {
         {/* ================= CTA ================= */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 pt-10 pb-24 text-center">
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
-            知道了 27 种，接下来该知道你是哪一种
+            {isEn ? 'Now that you know all 27 — find out which one you are' : '知道了 27 种，接下来该知道你是哪一种'}
           </h2>
           <p className="mt-4 text-sm sm:text-base text-zinc-400">
-            31 道题，3 分钟，不需要注册
+            {isEn ? '31 questions, 3 minutes, no sign-up required' : '31 道题，3 分钟，不需要注册'}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg">
-              <Link href="/test">立刻开始测试 →</Link>
+              <Link href="/test">{isEn ? 'Start the Test →' : '立刻开始测试 →'}</Link>
             </Button>
           </div>
         </section>
       </main>
 
-      <Footer />
+      <Footer locale={locale} />
     </>
   );
 }

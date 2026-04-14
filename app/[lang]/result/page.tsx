@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { buildMetadata } from '@/lib/metadata';
+import { type Locale } from '@/lib/i18n';
 import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
 import { ResultView } from './ResultView';
@@ -16,22 +17,25 @@ export const metadata: Metadata = buildMetadata({
   noIndex: true, // result pages carry query state, keep them out of the index
 });
 
-export default function ResultPage() {
+export default async function ResultPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+
   return (
     <>
-      <Nav />
+      <Nav locale={locale} />
       <main className="flex-1 px-4 py-10 sm:py-14">
         <Suspense
           fallback={
             <div className="mx-auto w-full max-w-3xl text-center text-zinc-500 text-sm">
-              正在加载结果…
+              {locale === 'en' ? 'Loading results…' : '正在加载结果…'}
             </div>
           }
         >
           <ResultView />
         </Suspense>
       </main>
-      <Footer />
+      <Footer locale={locale} />
     </>
   );
 }

@@ -4,6 +4,7 @@ import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { cn } from '@/lib/cn';
+import { type Locale, localePath, ui } from '@/lib/i18n';
 
 export interface NavLink {
   href: string;
@@ -11,25 +12,27 @@ export interface NavLink {
 }
 
 export interface NavProps {
-  /** Optional override for the nav link list. */
+  locale?: Locale;
   links?: NavLink[];
   className?: string;
 }
 
-const defaultZhLinks: NavLink[] = [
-  { href: '/', label: '首页' },
-  { href: '/test', label: '开始测试' },
-  { href: '/types', label: '27 类型' },
-  { href: '/match', label: '配对分析' },
-];
+function getDefaultLinks(locale: Locale): NavLink[] {
+  const t = ui[locale];
+  return [
+    { href: localePath('/', locale), label: t.home },
+    { href: localePath('/test', locale), label: t.test },
+    { href: localePath('/types', locale), label: t.types },
+    { href: localePath('/match', locale), label: t.match },
+  ];
+}
 
-// Note: English routes (/en/...) are intentionally not exposed. The /en
-// implementation does not exist yet, and emitting English nav + hreflang
-// links caused Google to crawl 404s. Re-add when app/[locale]/... ships.
-export function Nav({ links, className }: NavProps) {
+export function Nav({ locale = 'zh', links, className }: NavProps) {
   const [open, setOpen] = React.useState(false);
-  const resolvedLinks = links ?? defaultZhLinks;
-  const homeHref = '/';
+  const resolvedLinks = links ?? getDefaultLinks(locale);
+  const homeHref = localePath('/', locale);
+  const switchLocale = locale === 'zh' ? 'en' : 'zh';
+  const switchHref = switchLocale === 'en' ? '/en' : '/';
 
   return (
     <header
@@ -54,7 +57,7 @@ export function Nav({ links, className }: NavProps) {
           <span>sbti-test.club</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1">
+        <div className="hidden md:flex items-center gap-1">
           {resolvedLinks.map((link) => (
             <Link
               key={link.href}
@@ -64,12 +67,18 @@ export function Nav({ links, className }: NavProps) {
               {link.label}
             </Link>
           ))}
-        </nav>
+          <Link
+            href={switchHref}
+            className="ml-2 rounded-lg border border-zinc-700 px-2 py-1 text-xs font-bold text-zinc-400 hover:text-white hover:border-purple-500/60 transition-colors"
+          >
+            {locale === 'zh' ? 'EN' : '中文'}
+          </Link>
+        </div>
 
         <button
           type="button"
           className="md:hidden flex h-10 w-10 items-center justify-center rounded-xl text-zinc-300 hover:bg-zinc-800/60"
-          aria-label="切换导航"
+          aria-label={locale === 'zh' ? '切换导航' : 'Toggle navigation'}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
         >
@@ -111,6 +120,13 @@ export function Nav({ links, className }: NavProps) {
                 {link.label}
               </Link>
             ))}
+            <Link
+              href={switchHref}
+              onClick={() => setOpen(false)}
+              className="rounded-xl px-3 py-3 text-base font-semibold text-zinc-400 hover:bg-zinc-800/60"
+            >
+              {locale === 'zh' ? '🌐 English' : '🌐 中文'}
+            </Link>
           </div>
         </div>
       )}

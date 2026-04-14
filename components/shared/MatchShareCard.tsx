@@ -3,7 +3,7 @@
 import * as React from 'react';
 import QRCode from 'qrcode';
 import { cn } from '@/lib/cn';
-import { TypePoster } from '@/components/shared/TypePoster';
+import { getTypeImage } from '@/lib/type-image';
 import type { Verdict } from '@/data/compatibility';
 
 export interface MatchShareType {
@@ -48,7 +48,7 @@ function useQrDataUrl(value: string): string | null {
       errorCorrectionLevel: 'M',
       margin: 1,
       width: 256,
-      color: { dark: '#ffffffff', light: '#00000000' },
+      color: { dark: '#000000ff', light: '#00000000' },
     })
       .then((url) => {
         if (!cancelled) setDataUrl(url);
@@ -61,6 +61,21 @@ function useQrDataUrl(value: string): string | null {
     };
   }, [value]);
   return dataUrl;
+}
+
+function TypeImg({ code, emoji }: { code: string; emoji: string }) {
+  const src = getTypeImage(code);
+  if (!src) {
+    return (
+      <div className="size-full flex items-center justify-center text-3xl">
+        {emoji}
+      </div>
+    );
+  }
+  return (
+    // Plain <img> instead of next/image for reliable html-to-image export
+    <img src={src} alt={code} className="size-full object-cover" />
+  );
 }
 
 export function MatchShareCard({
@@ -79,7 +94,7 @@ export function MatchShareCard({
   return (
     <div
       className={cn(
-        'relative mx-auto w-full max-w-md aspect-[4/5] overflow-hidden rounded-3xl p-6 text-white',
+        'relative w-full aspect-[4/5] overflow-hidden rounded-3xl p-6 text-white',
         'bg-gradient-to-br from-zinc-950 via-purple-950 to-zinc-950',
         'border border-purple-500/30 shadow-2xl shadow-purple-900/50',
         className,
@@ -98,73 +113,119 @@ export function MatchShareCard({
       <div className="relative flex h-full flex-col">
         {/* Header */}
         <div className="flex items-start justify-between">
-          <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em] backdrop-blur-sm">
+          <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em]">
             SBTI · Match
           </span>
-          <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em] backdrop-blur-sm">
+          <span className="rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.15em]">
             配对报告
           </span>
         </div>
 
-        {/* Two types side by side */}
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          {[type1, type2].map((t) => (
-            <div key={t.code} className="flex flex-col items-center text-center">
-              <TypePoster
-                code={t.code}
-                nameCN={t.nameCN}
-                fallbackEmoji={t.emoji}
-                sizes="80px"
-                className="size-16 rounded-2xl ring-1 ring-white/15"
-              />
-              <div className="mt-2 text-lg font-black leading-none">
-                {t.nameCN}
-              </div>
-              <div className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                {t.code}
-              </div>
+        {/* Types + Score side by side */}
+        <div className="mt-5 flex items-center justify-center gap-2">
+          {/* Type 1 */}
+          <div className="flex flex-col items-center text-center flex-1 min-w-0">
+            <div className="size-[72px] rounded-2xl ring-1 ring-white/15 overflow-hidden bg-white/10 shrink-0">
+              <TypeImg code={type1.code} emoji={type1.emoji} />
             </div>
-          ))}
-        </div>
-
-        {/* Score */}
-        <div className="mt-4 text-center">
-          <div
-            className="text-6xl font-black leading-none"
-            style={{ color: vColor }}
-          >
-            {scorePercent}%
+            <div className="mt-2 text-base font-black leading-none truncate w-full">
+              {type1.nameCN}
+            </div>
+            <div className="mt-0.5 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
+              {type1.code}
+            </div>
           </div>
-          <div
-            className="mt-2 inline-block rounded-full border px-4 py-1.5 text-sm font-bold"
-            style={{
-              borderColor: `${vColor}80`,
-              backgroundColor: `${vColor}15`,
-              color: vColor,
-            }}
-          >
-            {verdictLabel[verdict]}
+
+          {/* Score in center */}
+          <div className="flex flex-col items-center shrink-0 px-1">
+            <div
+              className="text-5xl font-black leading-none"
+              style={{ color: vColor }}
+            >
+              {scorePercent}%
+            </div>
+            <div
+              className="mt-2 rounded-full border px-3 py-1 text-[10px] font-bold whitespace-nowrap"
+              style={{
+                borderColor: `${vColor}80`,
+                backgroundColor: `${vColor}15`,
+                color: vColor,
+              }}
+            >
+              {verdictLabel[verdict]}
+            </div>
+          </div>
+
+          {/* Type 2 */}
+          <div className="flex flex-col items-center text-center flex-1 min-w-0">
+            <div className="size-[72px] rounded-2xl ring-1 ring-white/15 overflow-hidden bg-white/10 shrink-0">
+              <TypeImg code={type2.code} emoji={type2.emoji} />
+            </div>
+            <div className="mt-2 text-base font-black leading-none truncate w-full">
+              {type2.nameCN}
+            </div>
+            <div className="mt-0.5 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
+              {type2.code}
+            </div>
           </div>
         </div>
 
         {/* Roast */}
-        <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm">
+        <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
           <p className="text-center text-xs leading-relaxed text-zinc-200 line-clamp-3">
             「{roast}」
           </p>
         </div>
 
-        {/* Footer (QR + CTA) */}
-        <div className="mt-auto pt-3 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
-          <div className="min-w-0 flex-1">
-            <div className="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-500">
-              TA 也来测一下
-            </div>
-            <div className="mt-0.5 text-xs font-bold text-white truncate">
-              {siteUrl}
-            </div>
-            <div className="mt-0.5 text-[9px] text-zinc-500">
-              31 题 · 3 分钟 · 免费
+        {/* Footer (Logo + QR) */}
+        <div className="mt-auto pt-3 flex items-center justify-between gap-3 border-t border-white/10">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            {/* Inline logo SVG — embedded for html-to-image reliability */}
+            <svg
+              viewBox="0 0 64 64"
+              fill="none"
+              className="size-9 shrink-0 rounded-lg"
+            >
+              <defs>
+                <linearGradient
+                  id="sbti-cg"
+                  x1="12"
+                  y1="12"
+                  x2="52"
+                  y2="52"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop offset="0%" stopColor="#a855f7" />
+                  <stop offset="100%" stopColor="#ec4899" />
+                </linearGradient>
+                <radialGradient
+                  id="sbti-cgw"
+                  cx="32"
+                  cy="32"
+                  r="26"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop offset="0%" stopColor="#a855f7" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="#a855f7" stopOpacity={0} />
+                </radialGradient>
+              </defs>
+              <rect width="64" height="64" rx="14" fill="#09090b" />
+              <rect width="64" height="64" rx="14" fill="url(#sbti-cgw)" />
+              <path
+                d="M46 18 L22 18 C16 18 16 30 22 30 L42 30 C48 30 48 46 42 46 L18 46"
+                stroke="url(#sbti-cg)"
+                strokeWidth="7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <div className="min-w-0">
+              <div className="text-xs font-bold text-white truncate">
+                {siteUrl}
+              </div>
+              <div className="mt-0.5 text-[9px] text-zinc-400">
+                人格测试 · 配对分析 · 免费
+              </div>
             </div>
           </div>
           <div className="shrink-0 rounded-lg bg-white p-1.5">

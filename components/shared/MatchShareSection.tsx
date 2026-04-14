@@ -7,6 +7,7 @@ import {
   type MatchShareType,
 } from '@/components/shared/MatchShareCard';
 import type { Verdict } from '@/data/compatibility';
+import type { Locale } from '@/lib/i18n';
 
 export interface MatchShareSectionProps {
   type1: MatchShareType;
@@ -14,6 +15,7 @@ export interface MatchShareSectionProps {
   scorePercent: number;
   verdict: Verdict;
   roast: string;
+  locale?: Locale;
 }
 
 export function MatchShareSection({
@@ -22,7 +24,9 @@ export function MatchShareSection({
   scorePercent,
   verdict,
   roast,
+  locale = 'zh',
 }: MatchShareSectionProps) {
+  const isEn = locale === 'en';
   const cardRef = React.useRef<HTMLDivElement>(null);
   const [status, setStatus] = React.useState<'idle' | 'saving' | 'copied'>(
     'idle',
@@ -33,11 +37,10 @@ export function MatchShareSection({
     setStatus('saving');
     try {
       const { toPng } = await import('html-to-image');
-      const dataUrl = await toPng(cardRef.current, {
-        pixelRatio: 2,
-        cacheBust: true,
-        backgroundColor: 'transparent',
-      });
+      const node = cardRef.current;
+      // First pass warms image caches; second produces correct output
+      await toPng(node, { pixelRatio: 2 }).catch(() => null);
+      const dataUrl = await toPng(node, { pixelRatio: 2 });
       const link = document.createElement('a');
       link.download = `sbti-${type1.code.toLowerCase()}-${type2.code.toLowerCase()}-match.png`;
       link.href = dataUrl;
@@ -63,33 +66,35 @@ export function MatchShareSection({
     <section id="share" className="scroll-mt-24">
       <div className="mb-4 text-center">
         <h2 className="text-2xl font-black tracking-tight text-white">
-          分享配对结果
+          {isEn ? 'Share Match Result' : '分享配对结果'}
         </h2>
         <p className="text-sm text-zinc-400 mt-1">
-          保存图片发给 TA，扫码就能测自己的 SBTI
+          {isEn ? 'Save and send to your partner — scan QR to take the test' : '保存图片发给 TA，扫码就能测自己的 SBTI'}
         </p>
       </div>
 
-      <div ref={cardRef} className="inline-block w-full flex justify-center">
-        <MatchShareCard
-          type1={type1}
-          type2={type2}
-          scorePercent={scorePercent}
-          verdict={verdict}
-          roast={roast}
-        />
+      <div className="flex justify-center">
+        <div ref={cardRef} className="w-full max-w-md">
+          <MatchShareCard
+            type1={type1}
+            type2={type2}
+            scorePercent={scorePercent}
+            verdict={verdict}
+            roast={roast}
+          />
+        </div>
       </div>
 
       <div className="mt-6 flex flex-wrap justify-center gap-3">
         <Button onClick={handleSave} disabled={status === 'saving'} size="lg">
-          {status === 'saving' ? '生成图片中...' : '📸 保存为图片'}
+          {status === 'saving' ? (isEn ? 'Generating...' : '生成图片中...') : (isEn ? '📸 Save as Image' : '📸 保存为图片')}
         </Button>
         <Button onClick={handleCopyLink} variant="outline" size="lg">
-          {status === 'copied' ? '✓ 链接已复制' : '🔗 复制结果链接'}
+          {status === 'copied' ? (isEn ? '✓ Link Copied' : '✓ 链接已复制') : (isEn ? '🔗 Copy Result Link' : '🔗 复制结果链接')}
         </Button>
       </div>
       <p className="mt-3 text-center text-xs text-zinc-500">
-        2 倍像素高清图，直接发朋友圈 / 小红书 / 微博
+        {isEn ? 'Retina-quality PNG, ready for social media' : '2 倍像素高清图，直接发朋友圈 / 小红书 / 微博'}
       </p>
     </section>
   );

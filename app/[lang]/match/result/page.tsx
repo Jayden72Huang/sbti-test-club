@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 
 import { buildMetadata } from '@/lib/metadata';
+import { type Locale } from '@/lib/i18n';
 import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
 import MatchResultView from './MatchResultView';
@@ -13,23 +14,26 @@ export const metadata: Metadata = buildMetadata({
   noIndex: true,
 });
 
-export default function MatchResultPage() {
+export default async function MatchResultPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+
   return (
     <>
-      <Nav />
+      <Nav locale={locale} />
       <Suspense
         fallback={
           <main className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
             <div className="text-center">
               <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-purple-500 border-t-transparent mb-4"></div>
-              <p className="text-zinc-400">正在分析你们的灵魂...</p>
+              <p className="text-zinc-400">{locale === 'en' ? 'Analyzing your souls...' : '正在分析你们的灵魂...'}</p>
             </div>
           </main>
         }
       >
         <MatchResultView />
       </Suspense>
-      <Footer />
+      <Footer locale={locale} />
     </>
   );
 }

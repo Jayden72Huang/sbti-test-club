@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { buildMetadata } from '@/lib/metadata';
+import { type Locale } from '@/lib/i18n';
 import {
   articleSchema,
   breadcrumbSchema,
@@ -25,7 +26,7 @@ import { guides, guidesBySlug } from '@/data/guides';
 
 type RouteParams = { slug: string };
 interface PageProps {
-  params: Promise<RouteParams>;
+  params: Promise<{ lang: string; slug: string }>;
 }
 
 export const dynamicParams = false;
@@ -124,7 +125,9 @@ function renderInline(text: string): React.ReactNode[] {
 // ---------------------------------------------------------------------------
 
 export default async function GuidePage({ params }: PageProps) {
-  const { slug } = await params;
+  const { lang, slug } = await params;
+  const locale = lang as Locale;
+  const isEn = locale === 'en';
   const guide = guidesBySlug[slug];
 
   if (!guide) notFound();
@@ -154,7 +157,7 @@ export default async function GuidePage({ params }: PageProps) {
         id={`schema-guide-${guide.slug}`}
       />
 
-      <Nav />
+      <Nav locale={locale} />
 
       <main className="min-h-screen bg-zinc-950 text-zinc-100">
         {/* ================= Breadcrumb ================= */}
@@ -165,12 +168,12 @@ export default async function GuidePage({ params }: PageProps) {
           <ol className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
             <li>
               <Link href="/" className="hover:text-purple-300">
-                首页
+                {isEn ? 'Home' : '首页'}
               </Link>
             </li>
             <li aria-hidden>/</li>
             <li>
-              <span className="text-zinc-500">指南</span>
+              <span className="text-zinc-500">{isEn ? 'Guides' : '指南'}</span>
             </li>
             <li aria-hidden>/</li>
             <li className="text-zinc-300 truncate">{guide.title}</li>
@@ -180,7 +183,7 @@ export default async function GuidePage({ params }: PageProps) {
         {/* ================= Hero ================= */}
         <section className="mx-auto max-w-4xl px-4 sm:px-6 pt-8 pb-10">
           <Badge variant="default" className="mb-4">
-            SBTI 深度指南
+            {isEn ? 'SBTI Guide' : 'SBTI 深度指南'}
           </Badge>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white leading-tight">
             {guide.title}
@@ -199,7 +202,7 @@ export default async function GuidePage({ params }: PageProps) {
         <section className="mx-auto max-w-4xl px-4 sm:px-6 pb-10">
           <div className="rounded-2xl border border-purple-500/30 bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-pink-500/10 p-6 sm:p-7">
             <div className="text-[11px] font-black uppercase tracking-[0.2em] text-purple-300">
-              TL;DR · 先看结论
+              {isEn ? 'TL;DR' : 'TL;DR · 先看结论'}
             </div>
             <p className="mt-3 text-base sm:text-lg leading-relaxed text-white">
               {renderInline(guide.tldr)}
@@ -231,9 +234,9 @@ export default async function GuidePage({ params }: PageProps) {
         {/* ================= FAQ ================= */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 py-12 border-t border-zinc-900">
           <header className="mb-8 text-center">
-            <Badge variant="default">常见问题</Badge>
+            <Badge variant="default">{isEn ? 'FAQ' : '常见问题'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              相关问答
+              {isEn ? 'Related Questions' : '相关问答'}
             </h2>
           </header>
           <Accordion
@@ -252,9 +255,9 @@ export default async function GuidePage({ params }: PageProps) {
         {relatedGuides.length > 0 && (
           <section className="mx-auto max-w-4xl px-4 sm:px-6 py-12 border-t border-zinc-900">
             <header className="mb-6">
-              <Badge variant="default">其他指南</Badge>
+              <Badge variant="default">{isEn ? 'More Guides' : '其他指南'}</Badge>
               <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-                你可能也想看
+                {isEn ? 'You might also like' : '你可能也想看'}
               </h2>
             </header>
             <div className="grid gap-4 md:grid-cols-2">
@@ -271,7 +274,7 @@ export default async function GuidePage({ params }: PageProps) {
                     {g.subtitle}
                   </p>
                   <div className="mt-3 text-xs font-semibold text-purple-300">
-                    阅读指南 →
+                    {isEn ? 'Read guide →' : '阅读指南 →'}
                   </div>
                 </Link>
               ))}
@@ -282,23 +285,23 @@ export default async function GuidePage({ params }: PageProps) {
         {/* ================= Bottom CTA ================= */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 pt-8 pb-24 text-center">
           <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-            准备好测一下自己的 SBTI 了？
+            {isEn ? 'Ready to find out your SBTI type?' : '准备好测一下自己的 SBTI 了？'}
           </h2>
           <p className="mt-4 text-sm sm:text-base text-zinc-400">
-            31 道题 3 分钟，免费无需注册
+            {isEn ? '31 questions, 3 minutes, free, no sign-up' : '31 道题 3 分钟，免费无需注册'}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg">
-              <Link href="/test">开始 SBTI 测试 →</Link>
+              <Link href="/test">{isEn ? 'Start the SBTI Test →' : '开始 SBTI 测试 →'}</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/types">查看 27 种类型</Link>
+              <Link href="/types">{isEn ? 'View 27 Types' : '查看 27 种类型'}</Link>
             </Button>
           </div>
         </section>
       </main>
 
-      <Footer />
+      <Footer locale={locale} />
     </>
   );
 }

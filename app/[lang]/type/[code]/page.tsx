@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import { buildMetadata, SITE_URL } from '@/lib/metadata';
+import { type Locale, localePath } from '@/lib/i18n';
 import {
   articleSchema,
   breadcrumbSchema,
@@ -38,14 +39,19 @@ import {
 // ---------------------------------------------------------------------------
 
 // Next 16: params is a Promise and MUST be awaited.
-type RouteParams = { code: string };
+type RouteParams = { lang: string; code: string };
 
 interface PageProps {
   params: Promise<RouteParams>;
 }
 
 export async function generateStaticParams(): Promise<RouteParams[]> {
-  return sbtiTypes.map((type) => ({ code: type.slug }));
+  const params: RouteParams[] = [];
+  for (const type of sbtiTypes) {
+    params.push({ lang: 'zh', code: type.slug });
+    params.push({ lang: 'en', code: type.slug });
+  }
+  return params;
 }
 
 // Dictionary lookups exported from data/sbti-types.ts. Slug keys are already
@@ -65,24 +71,26 @@ function findTypeByCode(code: string): SbtiType | undefined {
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { code } = await params;
+  const { lang, code } = await params;
+  const locale = lang as Locale;
+  const isEn = locale === 'en';
   const type = findTypeBySlug(code);
 
   if (!type) {
     return buildMetadata({
-      title: '类型未找到',
-      description: 'SBTI 人格类型未找到',
+      title: isEn ? 'Type Not Found' : '类型未找到',
+      description: isEn ? 'SBTI personality type not found' : 'SBTI 人格类型未找到',
       path: `/type/${code}`,
       noIndex: true,
     });
   }
 
   return buildMetadata({
-    title: type.seo.metaTitleCN,
-    description: type.seo.metaDescCN,
+    title: isEn ? type.seo.metaTitleEN : type.seo.metaTitleCN,
+    description: isEn ? type.seo.metaDescEN : type.seo.metaDescCN,
     path: `/type/${type.slug}`,
-    keywords: type.seo.keywordsCN,
-    locale: 'zh',
+    keywords: isEn ? type.seo.keywordsEN : type.seo.keywordsCN,
+    locale: isEn ? 'en' : 'zh',
     type: 'article',
   });
 }
@@ -93,21 +101,55 @@ export async function generateMetadata({
 // the type-specific oneLiner / strengths / weaknesses / compatible / famous.
 // ---------------------------------------------------------------------------
 
-function buildFaq(type: SbtiType): FaqItem[] {
+function buildFaq(type: SbtiType, isEn: boolean): FaqItem[] {
+  const name = isEn ? type.nameEN : type.nameCN;
   const compatNames = type.compatibleTypes
     .map((c) => findTypeByCode(c))
     .filter((t): t is SbtiType => Boolean(t))
-    .map((t) => `${t.code} ${t.nameCN}`)
-    .join('、');
+    .map((t) => `${t.code} ${isEn ? t.nameEN : t.nameCN}`)
+    .join(isEn ? ', ' : '、');
 
-  const famous = type.famousExamplesCN.slice(0, 3).join('、');
-  const strengthLine = type.strengthsCN.slice(0, 2).join('；');
-  const weaknessLine = type.weaknessesCN.slice(0, 2).join('；');
+  const famousArr = isEn ? type.famousExamplesEN : type.famousExamplesCN;
+  const famous = famousArr.slice(0, 3).join(isEn ? ', ' : '、');
+  const strengths = isEn ? type.strengthsEN : type.strengthsCN;
+  const weaknesses = isEn ? type.weaknessesEN : type.weaknessesCN;
+  const strengthLine = strengths.slice(0, 2).join(isEn ? '; ' : '；');
+  const weaknessLine = weaknesses.slice(0, 2).join(isEn ? '; ' : '；');
+  const tagline = isEn ? type.tagline.en : type.tagline.zh;
+
+  if (isEn) {
+    return [
+      {
+        q: `What does SBTI ${type.code} mean?`,
+        a: `${type.code} (${type.nameEN}) is one of the 27 SBTI personality types. ${type.oneLinerEN} Its signature tagline is "${tagline}".`,
+      },
+      {
+        q: `What are the strengths and weaknesses of SBTI ${type.code}?`,
+        a: `Core strengths of ${name}: ${strengthLine}. Watch out for: ${weaknessLine}. Check the 15-dimension radar chart for the full picture.`,
+      },
+      {
+        q: `Which SBTI types are most compatible with ${type.code}?`,
+        a: compatNames
+          ? `${name} (${type.code}) pairs best with: ${compatNames}. Visit the match page for detailed compatibility breakdowns.`
+          : `Best matches for ${name} (${type.code}) are not yet defined. Check /match for all combinations.`,
+      },
+      {
+        q: `Which famous people are SBTI ${type.code}?`,
+        a: famous
+          ? `Notable ${name} (${type.code}) examples include: ${famous}. These are reference profiles — your real type comes from the 31-question test.`
+          : `Famous examples for ${name} (${type.code}) are still being compiled.`,
+      },
+      {
+        q: `How do I know if I'm SBTI ${type.code}?`,
+        a: `The quickest way is to take the 3-minute SBTI test — 31 questions across 15 dimensions and 5 models. It's completely free, no sign-up required.`,
+      },
+    ];
+  }
 
   return [
     {
       q: `SBTI ${type.code} 是什么意思？`,
-      a: `${type.code}（${type.nameCN}，${type.nameEN}）是 SBTI 27 种人格中的一种。${type.oneLinerCN} 代表标语是"${type.tagline.zh}"。`,
+      a: `${type.code}（${type.nameCN}，${type.nameEN}）是 SBTI 27 种人格中的一种。${type.oneLinerCN} 代表标语是"${tagline}"。`,
     },
     {
       q: `SBTI ${type.nameCN}（${type.code}）有哪些优点和缺点？`,
@@ -137,28 +179,30 @@ function buildFaq(type: SbtiType): FaqItem[] {
 // ---------------------------------------------------------------------------
 
 export default async function TypeDetailPage({ params }: PageProps) {
-  const { code } = await params;
+  const { lang, code } = await params;
+  const locale = lang as Locale;
+  const isEn = locale === 'en';
   const type = findTypeBySlug(code);
 
   if (!type) {
     notFound();
   }
 
-  const faqItems = buildFaq(type);
+  const faqItems = buildFaq(type, isEn);
   const pageUrl = `${SITE_URL}/type/${type.slug}`;
 
   // -------- Schemas --------
   const schemas = [
     articleSchema({
-      title: type.seo.metaTitleCN,
-      description: type.seo.metaDescCN,
+      title: isEn ? type.seo.metaTitleEN : type.seo.metaTitleCN,
+      description: isEn ? type.seo.metaDescEN : type.seo.metaDescCN,
       url: `/type/${type.slug}`,
     }),
     faqPageSchema(faqItems),
     breadcrumbSchema([
-      { name: '首页', url: '/' },
-      { name: '27 类型', url: '/types' },
-      { name: `${type.code} ${type.nameCN}`, url: `/type/${type.slug}` },
+      { name: isEn ? 'Home' : '首页', url: '/' },
+      { name: isEn ? '27 Types' : '27 类型', url: '/types' },
+      { name: `${type.code} ${isEn ? type.nameEN : type.nameCN}`, url: `/type/${type.slug}` },
     ]),
   ];
 
@@ -192,12 +236,14 @@ export default async function TypeDetailPage({ params }: PageProps) {
 
   const deepParasCN = type.deepAnalysisCN.split('\n\n').filter(Boolean);
   const deepParasEN = type.deepAnalysisEN.split('\n\n').filter(Boolean);
+  const deepParas = isEn ? deepParasEN : deepParasCN;
+  const deepParasAlt = isEn ? deepParasCN : deepParasEN;
 
   return (
     <>
       <SchemaJsonLd schema={schemas} id={`schema-type-${type.slug}`} />
 
-      <Nav />
+      <Nav locale={locale} />
 
       <main className="min-h-screen bg-zinc-950 text-zinc-100">
         {/* ================= Breadcrumb ================= */}
@@ -207,19 +253,19 @@ export default async function TypeDetailPage({ params }: PageProps) {
         >
           <ol className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
             <li>
-              <Link href="/" className="hover:text-purple-300">
-                首页
+              <Link href={localePath('/', locale)} className="hover:text-purple-300">
+                {isEn ? 'Home' : '首页'}
               </Link>
             </li>
             <li aria-hidden>/</li>
             <li>
-              <Link href="/types" className="hover:text-purple-300">
-                27 类型
+              <Link href={localePath('/types', locale)} className="hover:text-purple-300">
+                {isEn ? '27 Types' : '27 类型'}
               </Link>
             </li>
             <li aria-hidden>/</li>
             <li className="text-zinc-300">
-              {type.code} {type.nameCN}
+              {type.code} {isEn ? type.nameEN : type.nameCN}
             </li>
           </ol>
         </nav>
@@ -256,37 +302,37 @@ export default async function TypeDetailPage({ params }: PageProps) {
                   SBTI · {type.code}
                 </span>
                 <h1 className="mt-4 text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white">
-                  {type.code} {type.nameCN} 人格解读
+                  {isEn ? `${type.code} ${type.nameEN} Personality` : `${type.code} ${type.nameCN} 人格解读`}
                 </h1>
                 <p className="mt-2 text-base sm:text-lg font-semibold uppercase tracking-wider text-zinc-400">
-                  {type.nameEN}
+                  {isEn ? type.nameCN : type.nameEN}
                 </p>
 
                 <div className="mt-6 w-full max-w-2xl space-y-5 text-left">
                   <div>
                     <div className="text-[11px] font-black uppercase tracking-[0.2em] text-purple-400/80">
-                      口头禅 · Catchphrase
+                      {isEn ? 'Catchphrase' : '口头禅 · Catchphrase'}
                     </div>
                     <p className="mt-1.5 text-lg sm:text-xl text-purple-200 italic">
-                      「{type.tagline.zh}」
+                      {isEn ? `"${type.tagline.en}"` : `「${type.tagline.zh}」`}
                     </p>
                   </div>
                   <div>
                     <div className="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-500">
-                      人格描述 · One-liner
+                      {isEn ? 'One-liner' : '人格描述 · One-liner'}
                     </div>
                     <p className="mt-1.5 text-sm sm:text-base text-zinc-300 leading-relaxed">
-                      {type.oneLinerCN}
+                      {isEn ? type.oneLinerEN : type.oneLinerCN}
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-3 md:justify-start">
                   <Button asChild size="lg">
-                    <Link href="/test">开始你的 SBTI 测试</Link>
+                    <Link href={localePath('/test', locale)}>{isEn ? 'Take the SBTI Test' : '开始你的 SBTI 测试'}</Link>
                   </Button>
                   <Button asChild variant="outline" size="lg">
-                    <Link href="/types">查看 27 类型</Link>
+                    <Link href={localePath('/types', locale)}>{isEn ? 'Browse 27 Types' : '查看 27 类型'}</Link>
                   </Button>
                 </div>
               </div>
@@ -311,30 +357,31 @@ export default async function TypeDetailPage({ params }: PageProps) {
             }}
           >
             <div className="text-[11px] font-black uppercase tracking-[0.2em] text-purple-300">
-              TL;DR · 一句话认识这个类型
+              {isEn ? 'TL;DR' : 'TL;DR · 一句话认识这个类型'}
             </div>
             <p className="mt-3 text-base sm:text-lg leading-relaxed text-white">
               <strong className="text-white">SBTI {type.code}</strong>
-              （{type.nameCN}，{type.nameEN}）是 SBTI 27 种人格类型中的一种。
-              {type.oneLinerCN}
+              {isEn
+                ? ` (${type.nameEN}) is one of the 27 SBTI personality types. ${type.oneLinerEN}`
+                : `（${type.nameCN}，${type.nameEN}）是 SBTI 27 种人格类型中的一种。${type.oneLinerCN}`}
             </p>
             <div className="mt-6 grid gap-5 sm:grid-cols-2">
               <div>
                 <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-300">
-                  ✓ Strengths · 核心优点
+                  {isEn ? '✓ Strengths' : '✓ Strengths · 核心优点'}
                 </div>
                 <ul className="mt-2 space-y-1 text-sm text-zinc-300 leading-relaxed">
-                  {type.strengthsCN.slice(0, 3).map((s, i) => (
+                  {(isEn ? type.strengthsEN : type.strengthsCN).slice(0, 3).map((s, i) => (
                     <li key={`s-${i}`}>· {s}</li>
                   ))}
                 </ul>
               </div>
               <div>
                 <div className="text-[10px] font-bold uppercase tracking-wider text-rose-300">
-                  ✗ Weaknesses · 需警惕的短板
+                  {isEn ? '✗ Weaknesses' : '✗ Weaknesses · 需警惕的短板'}
                 </div>
                 <ul className="mt-2 space-y-1 text-sm text-zinc-300 leading-relaxed">
-                  {type.weaknessesCN.slice(0, 3).map((w, i) => (
+                  {(isEn ? type.weaknessesEN : type.weaknessesCN).slice(0, 3).map((w, i) => (
                     <li key={`w-${i}`}>· {w}</li>
                   ))}
                 </ul>
@@ -343,12 +390,12 @@ export default async function TypeDetailPage({ params }: PageProps) {
             {compatibleCards.length > 0 && (
               <div className="mt-5 border-t border-zinc-800/80 pt-4 text-sm">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-                  最佳配对 · Best matches
+                  {isEn ? 'Best Matches' : '最佳配对 · Best matches'}
                 </span>
                 <span className="ml-2 text-zinc-300">
                   {compatibleCards
-                    .map((c) => `${c.code} ${c.nameCN}`)
-                    .join('、')}
+                    .map((c) => `${c.code} ${isEn ? c.nameEN : c.nameCN}`)
+                    .join(isEn ? ', ' : '、')}
                 </span>
               </div>
             )}
@@ -358,19 +405,21 @@ export default async function TypeDetailPage({ params }: PageProps) {
         {/* ================= Deep analysis ================= */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 py-12">
           <header className="mb-6">
-            <Badge variant="default">深度人格解读</Badge>
+            <Badge variant="default">{isEn ? 'Deep Analysis' : '深度人格解读'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              {type.nameCN}（{type.code}）的完整画像
+              {isEn
+                ? `${type.nameEN} (${type.code}) — Full Profile`
+                : `${type.nameCN}（${type.code}）的完整画像`}
             </h2>
             <p className="mt-2 text-sm text-zinc-500">
-              Deep Analysis · In-depth Personality Reading
+              {isEn ? 'In-depth Personality Reading' : 'Deep Analysis · In-depth Personality Reading'}
             </p>
           </header>
 
           <div className="prose prose-invert max-w-none space-y-5">
-            {deepParasCN.map((para, i) => (
+            {deepParas.map((para, i) => (
               <p
-                key={`cn-${i}`}
+                key={`main-${i}`}
                 className="text-base leading-[1.9] text-zinc-300"
               >
                 {para}
@@ -380,7 +429,7 @@ export default async function TypeDetailPage({ params }: PageProps) {
 
           <details className="group mt-10 rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5">
             <summary className="cursor-pointer list-none text-sm font-semibold text-purple-300 marker:hidden flex items-center gap-2">
-              <span>Read English version</span>
+              <span>{isEn ? '阅读中文版' : 'Read English version'}</span>
               <span
                 aria-hidden
                 className="inline-block transition-transform group-open:rotate-90"
@@ -389,9 +438,9 @@ export default async function TypeDetailPage({ params }: PageProps) {
               </span>
             </summary>
             <div className="mt-4 space-y-4">
-              {deepParasEN.map((para, i) => (
+              {deepParasAlt.map((para, i) => (
                 <p
-                  key={`en-${i}`}
+                  key={`alt-${i}`}
                   className="text-sm leading-[1.8] text-zinc-400"
                 >
                   {para}
@@ -404,12 +453,16 @@ export default async function TypeDetailPage({ params }: PageProps) {
         {/* ================= 15-dimension radar ================= */}
         <section className="mx-auto max-w-5xl px-4 sm:px-6 py-12">
           <header className="mb-8 text-center">
-            <Badge variant="default">15 维度雷达图</Badge>
+            <Badge variant="default">{isEn ? '15-Dimension Radar' : '15 维度雷达图'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              {type.code} 的 15 维人格画像
+              {isEn
+                ? `${type.code} 15-Dimension Profile`
+                : `${type.code} 的 15 维人格画像`}
             </h2>
             <p className="mt-2 text-sm text-zinc-500">
-              5 大模型 × 3 个维度，共 15 项 SBTI 评分
+              {isEn
+                ? '5 models × 3 dimensions = 15 SBTI scores'
+                : '5 大模型 × 3 个维度，共 15 项 SBTI 评分'}
             </p>
           </header>
 
@@ -421,7 +474,7 @@ export default async function TypeDetailPage({ params }: PageProps) {
                 size={420}
               />
               <p className="mt-4 text-center text-xs text-zinc-500">
-                H = 高，M = 中，L = 低
+                {isEn ? 'H = High, M = Medium, L = Low' : 'H = 高，M = 中，L = 低'}
               </p>
             </Card>
 
@@ -443,12 +496,12 @@ export default async function TypeDetailPage({ params }: PageProps) {
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <div className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
-                          {dim.shortCode} · {dim.groupNameCN}
+                          {dim.shortCode} · {isEn ? dim.groupNameEN : dim.groupNameCN}
                         </div>
                         <div className="mt-0.5 text-sm font-black text-white">
-                          {dim.nameCN}
+                          {isEn ? dim.nameEN : dim.nameCN}
                           <span className="ml-2 text-xs font-medium text-zinc-500">
-                            {dim.nameEN}
+                            {isEn ? dim.nameCN : dim.nameEN}
                           </span>
                         </div>
                       </div>
@@ -459,7 +512,7 @@ export default async function TypeDetailPage({ params }: PageProps) {
                       </span>
                     </div>
                     <p className="mt-2 text-xs leading-relaxed text-zinc-400">
-                      {explain.cn}
+                      {isEn ? explain.en : explain.cn}
                     </p>
                   </div>
                 );
@@ -474,9 +527,11 @@ export default async function TypeDetailPage({ params }: PageProps) {
           className="mx-auto max-w-5xl px-4 sm:px-6 py-12 scroll-mt-24"
         >
           <header className="mb-8 text-center">
-            <Badge variant="default">优缺点速览</Badge>
+            <Badge variant="default">{isEn ? 'Strengths & Weaknesses' : '优缺点速览'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              {type.nameCN} 的高光与暗面
+              {isEn
+                ? `${type.nameEN} — Highlights & Blind Spots`
+                : `${type.nameCN} 的高光与暗面`}
             </h2>
           </header>
 
@@ -485,11 +540,11 @@ export default async function TypeDetailPage({ params }: PageProps) {
               <div className="mb-4 flex items-center gap-2">
                 <span className="text-2xl">✨</span>
                 <h3 className="text-lg font-black tracking-tight text-white">
-                  核心优点
+                  {isEn ? 'Core Strengths' : '核心优点'}
                 </h3>
               </div>
               <ul className="space-y-3">
-                {type.strengthsCN.map((item, i) => (
+                {(isEn ? type.strengthsEN : type.strengthsCN).map((item, i) => (
                   <li
                     key={`s-${i}`}
                     className="flex gap-3 text-sm leading-relaxed text-zinc-300"
@@ -505,11 +560,11 @@ export default async function TypeDetailPage({ params }: PageProps) {
               <div className="mb-4 flex items-center gap-2">
                 <span className="text-2xl">⚠️</span>
                 <h3 className="text-lg font-black tracking-tight text-white">
-                  需要警惕
+                  {isEn ? 'Watch Out For' : '需要警惕'}
                 </h3>
               </div>
               <ul className="space-y-3">
-                {type.weaknessesCN.map((item, i) => (
+                {(isEn ? type.weaknessesEN : type.weaknessesCN).map((item, i) => (
                   <li
                     key={`w-${i}`}
                     className="flex gap-3 text-sm leading-relaxed text-zinc-300"
@@ -526,25 +581,29 @@ export default async function TypeDetailPage({ params }: PageProps) {
         {/* ================= Compatibility ================= */}
         <section className="mx-auto max-w-5xl px-4 sm:px-6 py-12">
           <header className="mb-8 text-center">
-            <Badge variant="default">配对分析</Badge>
+            <Badge variant="default">{isEn ? 'Compatibility' : '配对分析'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              {type.code} 和谁最配，又容易和谁相爱相杀
+              {isEn
+                ? `${type.code} — Best Matches & Tough Combos`
+                : `${type.code} 和谁最配，又容易和谁相爱相杀`}
             </h2>
             <p className="mt-2 text-sm text-zinc-500">
-              点击类型卡片可以直接进入两两配对的详细分析
+              {isEn
+                ? 'Click any type card to see the full match breakdown'
+                : '点击类型卡片可以直接进入两两配对的详细分析'}
             </p>
           </header>
 
           {compatibleCards.length > 0 && (
             <div className="mb-10">
               <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-emerald-300">
-                最佳配对 · Best Match
+                {isEn ? 'Best Match' : '最佳配对 · Best Match'}
               </h3>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {compatibleCards.map((other) => (
                   <Link
                     key={other.slug}
-                    href={`/match?type1=${type.code}&type2=${other.code}`}
+                    href={`${localePath('/match', locale)}?type1=${type.code}&type2=${other.code}`}
                     className="group block rounded-2xl border border-emerald-500/30 bg-zinc-900/60 p-5 transition-all hover:-translate-y-1 hover:border-emerald-400/60 hover:shadow-xl hover:shadow-emerald-900/20"
                   >
                     <div className="flex items-start justify-between">
@@ -559,16 +618,16 @@ export default async function TypeDetailPage({ params }: PageProps) {
                       </span>
                     </div>
                     <div className="mt-4 text-lg font-black text-white">
-                      {other.nameCN}
+                      {isEn ? other.nameEN : other.nameCN}
                     </div>
                     <div className="text-[11px] uppercase tracking-wider text-zinc-500">
-                      {other.nameEN}
+                      {isEn ? other.nameCN : other.nameEN}
                     </div>
                     <p className="mt-3 text-xs leading-relaxed text-zinc-400 line-clamp-2">
-                      {other.tagline.zh}
+                      {isEn ? other.tagline.en : other.tagline.zh}
                     </p>
                     <div className="mt-4 text-xs font-semibold text-emerald-300 opacity-0 transition-opacity group-hover:opacity-100">
-                      查看配对 →
+                      {isEn ? 'View Match →' : '查看配对 →'}
                     </div>
                   </Link>
                 ))}
@@ -579,13 +638,13 @@ export default async function TypeDetailPage({ params }: PageProps) {
           {conflictCards.length > 0 && (
             <div>
               <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-rose-300">
-                容易冲突 · Hard Mode
+                {isEn ? 'Hard Mode' : '容易冲突 · Hard Mode'}
               </h3>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {conflictCards.map((other) => (
                   <Link
                     key={other.slug}
-                    href={`/match?type1=${type.code}&type2=${other.code}`}
+                    href={`${localePath('/match', locale)}?type1=${type.code}&type2=${other.code}`}
                     className="group block rounded-2xl border border-rose-500/30 bg-zinc-900/60 p-5 transition-all hover:-translate-y-1 hover:border-rose-400/60 hover:shadow-xl hover:shadow-rose-900/20"
                   >
                     <div className="flex items-start justify-between">
@@ -600,16 +659,16 @@ export default async function TypeDetailPage({ params }: PageProps) {
                       </span>
                     </div>
                     <div className="mt-4 text-lg font-black text-white">
-                      {other.nameCN}
+                      {isEn ? other.nameEN : other.nameCN}
                     </div>
                     <div className="text-[11px] uppercase tracking-wider text-zinc-500">
-                      {other.nameEN}
+                      {isEn ? other.nameCN : other.nameEN}
                     </div>
                     <p className="mt-3 text-xs leading-relaxed text-zinc-400 line-clamp-2">
-                      {other.tagline.zh}
+                      {isEn ? other.tagline.en : other.tagline.zh}
                     </p>
                     <div className="mt-4 text-xs font-semibold text-rose-300 opacity-0 transition-opacity group-hover:opacity-100">
-                      看看为什么 →
+                      {isEn ? 'See Why →' : '看看为什么 →'}
                     </div>
                   </Link>
                 ))}
@@ -621,54 +680,62 @@ export default async function TypeDetailPage({ params }: PageProps) {
         {/* ================= Recommendations ================= */}
         <section className="mx-auto max-w-5xl px-4 sm:px-6 py-12">
           <header className="mb-8 text-center">
-            <Badge variant="default">专属推荐</Badge>
+            <Badge variant="default">{isEn ? 'Recommendations' : '专属推荐'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              {type.nameCN} 的四件套
+              {isEn
+                ? `${type.nameEN} Starter Pack`
+                : `${type.nameCN} 的四件套`}
             </h2>
             <p className="mt-2 text-sm text-zinc-500">
-              电影 · 歌曲 · 活动 · 礼物，给每个 {type.code} 准备的日常清单
+              {isEn
+                ? `Movies, songs, activities & gifts curated for every ${type.code}`
+                : `电影 · 歌曲 · 活动 · 礼物，给每个 ${type.code} 准备的日常清单`}
             </p>
           </header>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <RecommendationCard
               icon="🎬"
-              title="电影"
-              items={type.recommendations.movies.zh}
+              title={isEn ? 'Movies' : '电影'}
+              items={isEn ? type.recommendations.movies.en : type.recommendations.movies.zh}
             />
             <RecommendationCard
               icon="🎵"
-              title="歌曲"
-              items={type.recommendations.songs.zh}
+              title={isEn ? 'Songs' : '歌曲'}
+              items={isEn ? type.recommendations.songs.en : type.recommendations.songs.zh}
             />
             <RecommendationCard
               icon="✨"
-              title="活动"
-              items={type.recommendations.activities.zh}
+              title={isEn ? 'Activities' : '活动'}
+              items={isEn ? type.recommendations.activities.en : type.recommendations.activities.zh}
             />
             <RecommendationCard
               icon="🎁"
-              title="礼物"
-              items={type.recommendations.gifts.zh}
+              title={isEn ? 'Gifts' : '礼物'}
+              items={isEn ? type.recommendations.gifts.en : type.recommendations.gifts.zh}
             />
           </div>
         </section>
 
         {/* ================= Famous examples ================= */}
-        {type.famousExamplesCN.length > 0 && (
+        {(isEn ? type.famousExamplesEN : type.famousExamplesCN).length > 0 && (
           <section className="mx-auto max-w-5xl px-4 sm:px-6 py-12">
             <header className="mb-8 text-center">
-              <Badge variant="default">名人代表</Badge>
+              <Badge variant="default">{isEn ? 'Famous Examples' : '名人代表'}</Badge>
               <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-                这些人，可能也是 {type.code}
+                {isEn
+                  ? `These people might also be ${type.code}`
+                  : `这些人，可能也是 ${type.code}`}
               </h2>
               <p className="mt-2 text-sm text-zinc-500">
-                仅供参考画像，真正的人格还是看你自己的测试结果
+                {isEn
+                  ? 'Reference profiles only — your real type comes from the test'
+                  : '仅供参考画像，真正的人格还是看你自己的测试结果'}
               </p>
             </header>
             <Card className="p-6">
               <div className="flex flex-wrap justify-center gap-3">
-                {type.famousExamplesCN.map((name, i) => (
+                {(isEn ? type.famousExamplesEN : type.famousExamplesCN).map((name, i) => (
                   <span
                     key={`famous-${i}`}
                     className="rounded-full border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-semibold text-zinc-200"
@@ -685,16 +752,16 @@ export default async function TypeDetailPage({ params }: PageProps) {
         {similarTypes.length > 0 && (
           <section className="mx-auto max-w-5xl px-4 sm:px-6 py-12">
             <header className="mb-8 text-center">
-              <Badge variant="default">你可能也想看</Badge>
+              <Badge variant="default">{isEn ? 'You Might Also Like' : '你可能也想看'}</Badge>
               <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-                其他热门 SBTI 类型
+                {isEn ? 'Other Popular SBTI Types' : '其他热门 SBTI 类型'}
               </h2>
             </header>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {similarTypes.map((other) => (
                 <Link
                   key={other.slug}
-                  href={`/type/${other.slug}`}
+                  href={localePath(`/type/${other.slug}`, locale)}
                   className="group block rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 transition-all hover:-translate-y-1 hover:border-purple-500/60 hover:shadow-xl hover:shadow-purple-900/20"
                 >
                   <div className="flex items-start justify-between">
@@ -709,13 +776,13 @@ export default async function TypeDetailPage({ params }: PageProps) {
                     </span>
                   </div>
                   <div className="mt-4 text-lg font-black text-white">
-                    {other.nameCN}
+                    {isEn ? other.nameEN : other.nameCN}
                   </div>
                   <div className="text-[11px] uppercase tracking-wider text-zinc-500">
-                    {other.nameEN}
+                    {isEn ? other.nameCN : other.nameEN}
                   </div>
                   <p className="mt-3 text-xs leading-relaxed text-zinc-400 line-clamp-2">
-                    {other.tagline.zh}
+                    {isEn ? other.tagline.en : other.tagline.zh}
                   </p>
                 </Link>
               ))}
@@ -726,9 +793,11 @@ export default async function TypeDetailPage({ params }: PageProps) {
         {/* ================= FAQ ================= */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 py-12">
           <header className="mb-8 text-center">
-            <Badge variant="default">常见问题</Badge>
+            <Badge variant="default">{isEn ? 'FAQ' : '常见问题'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
-              关于 SBTI {type.code} 的 5 个常见问题
+              {isEn
+                ? `5 Common Questions About SBTI ${type.code}`
+                : `关于 SBTI ${type.code} 的 5 个常见问题`}
             </h2>
           </header>
           <Accordion
@@ -751,17 +820,21 @@ export default async function TypeDetailPage({ params }: PageProps) {
           >
             <CardContent className="p-0">
               <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                你是 {type.code} 吗？3 分钟测出你的 SBTI
+                {isEn
+                  ? `Are you a ${type.code}? Find out in 3 minutes`
+                  : `你是 ${type.code} 吗？3 分钟测出你的 SBTI`}
               </h2>
               <p className="mt-3 text-sm sm:text-base text-zinc-400">
-                31 道题，15 个维度，27 种人格类型。免费测试，不需要注册。
+                {isEn
+                  ? '31 questions, 15 dimensions, 27 personality types. Free, no sign-up.'
+                  : '31 道题，15 个维度，27 种人格类型。免费测试，不需要注册。'}
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 <Button asChild size="lg">
-                  <Link href="/test">立刻开始测试</Link>
+                  <Link href={localePath('/test', locale)}>{isEn ? 'Start the Test' : '立刻开始测试'}</Link>
                 </Button>
                 <Button asChild variant="outline" size="lg">
-                  <Link href="/types">浏览所有类型</Link>
+                  <Link href={localePath('/types', locale)}>{isEn ? 'Browse All Types' : '浏览所有类型'}</Link>
                 </Button>
               </div>
               <p className="mt-4 text-xs text-zinc-600">
@@ -772,7 +845,7 @@ export default async function TypeDetailPage({ params }: PageProps) {
         </section>
       </main>
 
-      <Footer />
+      <Footer locale={locale} />
     </>
   );
 }

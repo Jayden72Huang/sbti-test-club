@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 
 import { buildMetadata } from '@/lib/metadata';
+import { type Locale } from '@/lib/i18n';
 import {
   webApplicationSchema,
   faqPageSchema,
@@ -35,8 +36,11 @@ export const metadata: Metadata = buildMetadata({
   locale: 'zh',
 });
 
-export default function MatchPage() {
-  const match = seoContent.match.zh;
+export default async function MatchPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const isEn = locale === 'en';
+  const match = seoContent.match[locale] ?? seoContent.match.zh;
 
   const schemas = [
     webApplicationSchema(),
@@ -50,7 +54,7 @@ export default function MatchPage() {
   return (
     <>
       <SchemaJsonLd schema={schemas} id="match-schema" />
-      <Nav />
+      <Nav locale={locale} />
       <main className="bg-zinc-950 text-zinc-100">
         {/* Hero */}
         <section className="relative overflow-hidden">
@@ -69,11 +73,11 @@ export default function MatchPage() {
             <ol className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
               <li>
                 <Link href="/" className="hover:text-purple-300">
-                  首页
+                  {isEn ? 'Home' : '首页'}
                 </Link>
               </li>
               <li aria-hidden>/</li>
-              <li className="text-zinc-300">情侣配对</li>
+              <li className="text-zinc-300">{isEn ? 'Match' : '情侣配对'}</li>
             </ol>
           </nav>
 
@@ -94,7 +98,7 @@ export default function MatchPage() {
         <Suspense
           fallback={
             <div className="text-center py-8 text-zinc-500">
-              加载配对器...
+              {isEn ? 'Loading matcher...' : '加载配对器...'}
             </div>
           }
         >
@@ -118,7 +122,7 @@ export default function MatchPage() {
         {/* How to use */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
           <div className="rounded-2xl bg-zinc-900/50 border border-zinc-800 p-6">
-            <h2 className="text-2xl font-black mb-4">怎么用</h2>
+            <h2 className="text-2xl font-black mb-4">{isEn ? 'How to Use' : '怎么用'}</h2>
             <div className="text-zinc-300 leading-[1.9] whitespace-pre-wrap">
               {match.howToUse}
             </div>
@@ -128,7 +132,7 @@ export default function MatchPage() {
         {/* Sample */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
           <div className="rounded-2xl bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/30 p-6">
-            <h2 className="text-2xl font-black mb-4">示例结果</h2>
+            <h2 className="text-2xl font-black mb-4">{isEn ? 'Sample Result' : '示例结果'}</h2>
             <p className="text-zinc-300 leading-[1.9]">{match.sampleResults}</p>
           </div>
         </section>
@@ -142,13 +146,15 @@ export default function MatchPage() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <div className="text-[11px] font-black uppercase tracking-[0.2em] text-purple-300">
-                  深度配对图鉴
+                  {isEn ? 'Deep Match Atlas' : '深度配对图鉴'}
                 </div>
                 <h2 className="mt-1.5 text-xl sm:text-2xl font-black text-white">
-                  浏览 111 对手写 SBTI 配对深度解读 →
+                  {isEn ? 'Browse 111 Hand-Written SBTI Match Deep Dives →' : '浏览 111 对手写 SBTI 配对深度解读 →'}
                 </h2>
                 <p className="mt-2 text-sm text-zinc-400">
-                  按匹配度分组：命中注定 / 非常合拍 / 可以相处 / 有点坎坷 / 难以共存。每对都有完整 1500+ 字解读。
+                  {isEn
+                    ? 'Grouped by compatibility: Destiny / Great Match / Workable / Rocky / Doomed. Each pair has a full 1500+ word analysis.'
+                    : '按匹配度分组：命中注定 / 非常合拍 / 可以相处 / 有点坎坷 / 难以共存。每对都有完整 1500+ 字解读。'}
                 </p>
               </div>
               <span
@@ -163,7 +169,7 @@ export default function MatchPage() {
 
         {/* FAQ */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 py-12">
-          <h2 className="text-3xl font-black mb-6">常见问题</h2>
+          <h2 className="text-3xl font-black mb-6">{isEn ? 'FAQ' : '常见问题'}</h2>
           <Accordion
             items={match.faqs.map((f, i) => ({
               id: `match-faq-${i}`,
@@ -177,22 +183,22 @@ export default function MatchPage() {
         {/* CTA */}
         <section className="mx-auto max-w-3xl px-4 sm:px-6 pt-4 pb-24 text-center">
           <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white">
-            还没测 SBTI？先测一下再来配对
+            {isEn ? "Haven't taken the SBTI yet? Test first, match later" : '还没测 SBTI？先测一下再来配对'}
           </h2>
           <p className="mt-4 text-sm sm:text-base text-zinc-400">
-            31 道题，3 分钟，免费无需注册
+            {isEn ? '31 questions, 3 minutes, free, no sign-up' : '31 道题，3 分钟，免费无需注册'}
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg">
-              <Link href="/test">立刻开始测试 →</Link>
+              <Link href="/test">{isEn ? 'Start the Test →' : '立刻开始测试 →'}</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/types">查看 27 类型</Link>
+              <Link href="/types">{isEn ? 'View 27 Types' : '查看 27 类型'}</Link>
             </Button>
           </div>
         </section>
       </main>
-      <Footer />
+      <Footer locale={locale} />
     </>
   );
 }

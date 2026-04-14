@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { buildMetadata } from '@/lib/metadata';
+import { type Locale } from '@/lib/i18n';
 import {
   breadcrumbSchema,
   itemListSchema,
@@ -30,7 +31,10 @@ export const metadata: Metadata = buildMetadata({
   locale: 'zh',
 });
 
-export default function GuideIndexPage() {
+export default async function GuideIndexPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+  const isEn = locale === 'en';
   const schemas = [
     breadcrumbSchema([
       { name: '首页', url: '/' },
@@ -50,7 +54,7 @@ export default function GuideIndexPage() {
     <>
       <SchemaJsonLd schema={schemas} id="guide-index-schema" />
 
-      <Nav />
+      <Nav locale={locale} />
 
       <main className="min-h-screen bg-zinc-950 text-zinc-100">
         <nav
@@ -60,11 +64,11 @@ export default function GuideIndexPage() {
           <ol className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
             <li>
               <Link href="/" className="hover:text-purple-300">
-                首页
+                {isEn ? 'Home' : '首页'}
               </Link>
             </li>
             <li aria-hidden>/</li>
-            <li className="text-zinc-300">指南</li>
+            <li className="text-zinc-300">{isEn ? 'Guides' : '指南'}</li>
           </ol>
         </nav>
 
@@ -80,14 +84,15 @@ export default function GuideIndexPage() {
           />
           <div className="relative mx-auto max-w-4xl px-4 sm:px-6 pt-12 pb-12 text-center">
             <Badge variant="default" className="mb-5">
-              SBTI 深度指南
+              {isEn ? 'SBTI Guides' : 'SBTI 深度指南'}
             </Badge>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white">
-              关于 SBTI 的一切，都在这里
+              {isEn ? 'Everything about SBTI, all in one place' : '关于 SBTI 的一切，都在这里'}
             </h1>
             <p className="mt-5 max-w-2xl mx-auto text-base sm:text-lg text-zinc-400 leading-relaxed">
-              从"SBTI 是什么"到"SBTI 和 MBTI 的 7 大区别"，每篇指南都是 2000+
-              字的深度长文，帮你彻底搞懂这个 2026 爆火的沙雕人格测试。
+              {isEn
+                ? 'From "What is SBTI?" to "7 differences between SBTI and MBTI" — each guide is a 2000+ word deep dive to help you fully understand this viral personality test.'
+                : '从"SBTI 是什么"到"SBTI 和 MBTI 的 7 大区别"，每篇指南都是 2000+ 字的深度长文，帮你彻底搞懂这个 2026 爆火的沙雕人格测试。'}
             </p>
           </div>
         </section>
@@ -111,7 +116,7 @@ export default function GuideIndexPage() {
                   {g.subtitle}
                 </p>
                 <div className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-purple-300">
-                  阅读全文
+                  {isEn ? 'Read full guide' : '阅读全文'}
                   <span
                     aria-hidden
                     className="transition-transform group-hover:translate-x-1"
@@ -125,7 +130,7 @@ export default function GuideIndexPage() {
         </section>
       </main>
 
-      <Footer />
+      <Footer locale={locale} />
     </>
   );
 }

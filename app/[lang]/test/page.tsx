@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { buildMetadata } from '@/lib/metadata';
+import { type Locale } from '@/lib/i18n';
 import TestClient from './TestClient';
 
 export const metadata: Metadata = buildMetadata({
@@ -17,6 +18,9 @@ export const metadata: Metadata = buildMetadata({
   locale: 'zh',
 });
 
-export default function TestPage() {
+export default async function TestPage({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const locale = lang as Locale;
+
   return <TestClient />;
 }
