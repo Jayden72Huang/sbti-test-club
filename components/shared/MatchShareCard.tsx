@@ -18,6 +18,7 @@ export interface MatchShareCardProps {
   type2: MatchShareType;
   scorePercent: number;
   verdict: Verdict;
+  summary: string;
   roast: string;
   qrUrl?: string;
   siteUrl?: string;
@@ -83,6 +84,7 @@ export function MatchShareCard({
   type2,
   scorePercent,
   verdict,
+  summary,
   roast,
   qrUrl = 'https://sbti-test.club/test',
   siteUrl = 'sbti-test.club',
@@ -170,11 +172,18 @@ export function MatchShareCard({
           </div>
         </div>
 
-        {/* Roast */}
-        <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-          <p className="text-center text-xs leading-relaxed text-zinc-200 line-clamp-3">
-            「{roast}」
-          </p>
+        {/* Summary + Roast */}
+        <div className="mt-4 flex flex-col gap-2.5 flex-1 min-h-0">
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5">
+            <p className="text-center text-[11px] leading-relaxed text-zinc-300 line-clamp-3">
+              {summary}
+            </p>
+          </div>
+          <div className="rounded-xl bg-purple-500/10 border border-purple-500/20 px-3 py-2">
+            <p className="text-center text-[10px] italic leading-relaxed text-purple-200 line-clamp-2">
+              「{roast}」
+            </p>
+          </div>
         </div>
 
         {/* Footer (Logo + QR) */}

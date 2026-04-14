@@ -14,6 +14,7 @@ export interface MatchShareSectionProps {
   type2: MatchShareType;
   scorePercent: number;
   verdict: Verdict;
+  summary: string;
   roast: string;
   locale?: Locale;
 }
@@ -23,6 +24,7 @@ export function MatchShareSection({
   type2,
   scorePercent,
   verdict,
+  summary,
   roast,
   locale = 'zh',
 }: MatchShareSectionProps) {
@@ -80,6 +82,7 @@ export function MatchShareSection({
             type2={type2}
             scorePercent={scorePercent}
             verdict={verdict}
+            summary={summary}
             roast={roast}
           />
         </div>

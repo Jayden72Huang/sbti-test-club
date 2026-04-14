@@ -21,6 +21,7 @@ import { TypePoster } from '@/components/shared/TypePoster';
 import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
 import { MatchShareSection } from '@/components/shared/MatchShareSection';
+import { PaywallGate } from '@/components/shared/PaywallGate';
 
 import {
   sbtiTypes,
@@ -489,8 +490,20 @@ export default async function MatchPairPage({ params }: PageProps) {
           </div>
         </section>
 
+        {/* ================= Premium gated content ================= */}
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
+        <PaywallGate
+          productId={`match-${slugA}-${slugB}`}
+          headline={isEn ? 'Unlock Full Compatibility Report' : '解锁完整配对报告'}
+          description={isEn
+            ? `See what ${nameA} & ${nameB} fight about, best date ideas, and how to make it last`
+            : `看看 ${nameA} 和 ${nameB} 最可能因为什么吵架、最适合一起做什么、怎样相处更长久`}
+          priceLabel="$2.99"
+          ctaText={isEn ? '🔓 Unlock Full Report $2.99' : undefined}
+        >
+
         {/* ================= 5 Fights ================= */}
-        <section className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
+        <section className="py-8">
           <header className="mb-5">
             <Badge variant="default">{isEn ? '5 Most Likely Fights' : '最可能吵的 5 件事'}</Badge>
             <h2 className="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-white">
@@ -565,6 +578,9 @@ export default async function MatchPairPage({ params }: PageProps) {
             ))}
           </div>
         </section>
+
+        </PaywallGate>
+        </div>
 
         {/* ================= Two types deep links ================= */}
         <section className="mx-auto max-w-5xl px-4 sm:px-6 py-12">
@@ -683,6 +699,7 @@ export default async function MatchPairPage({ params }: PageProps) {
             type2={{ code: typeB.code, nameCN: typeB.nameCN, emoji: typeB.emoji, color: typeB.color }}
             scorePercent={compat.scorePercent}
             verdict={compat.verdict}
+            summary={summary}
             roast={roast}
             locale={locale}
           />
