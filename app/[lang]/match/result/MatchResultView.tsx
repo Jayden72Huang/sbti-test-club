@@ -77,89 +77,105 @@ export default function MatchResultView() {
               'radial-gradient(circle at 50% 0%, rgba(236,72,153,0.25) 0%, transparent 55%)',
           }}
         />
-        <div className="relative mx-auto max-w-4xl px-4 sm:px-6 pt-12 pb-8">
-          {/* 两人头像卡 */}
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-8">
-            {[type1, type2].map((t, i) => {
-              const age = i === 0 ? age1 : age2;
-              const gender = i === 0 ? gender1 : gender2;
-              return (
-                <Card
-                  key={t.code}
-                  className="text-center"
-                  style={{ borderColor: `${t.color}55` }}
-                >
-                  <CardHeader>
-                    <TypePoster
-                      code={t.code}
-                      nameCN={t.nameCN}
-                      fallbackEmoji={t.emoji}
-                      priority
-                      sizes="(max-width: 640px) 40vw, 160px"
-                      className="mx-auto mb-3 size-28 sm:size-32 rounded-2xl ring-1 ring-white/10"
-                    />
-                    <CardTitle className="text-xl sm:text-2xl">
-                      {t.nameCN}
-                    </CardTitle>
-                    <p className="text-sm text-zinc-500 font-mono">{t.code}</p>
-                    {(age || gender) && (
-                      <p className="text-xs text-zinc-500 mt-1">
-                        {[genderLabel(gender), age && `${age} 岁`]
-                          .filter(Boolean)
-                          .join(' · ')}
-                      </p>
-                    )}
-                  </CardHeader>
-                </Card>
-              );
-            })}
-          </div>
-
-          {/* 大号匹配度 */}
-          <div className="text-center py-8">
-            <div className="text-8xl sm:text-9xl font-black mb-2 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-              {compat.scorePercent}%
-            </div>
-            <div
-              className={`inline-block px-5 py-2 rounded-full text-xl font-bold border ${verdictCss}`}
+        <div className="relative mx-auto max-w-4xl px-4 sm:px-6 pt-12 pb-6">
+          {/* ===== Hero: [Type1] [Score] [Type2] ===== */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 sm:gap-6 mb-6">
+            {/* Type 1 */}
+            <Card
+              className="text-center"
+              style={{ borderColor: `${type1.color}55` }}
             >
-              {verdictLabel[compat.verdict]}
+              <CardHeader>
+                <TypePoster
+                  code={type1.code}
+                  nameCN={type1.nameCN}
+                  fallbackEmoji={type1.emoji}
+                  priority
+                  sizes="(max-width: 640px) 30vw, 140px"
+                  className="mx-auto mb-3 size-24 sm:size-32 rounded-2xl ring-1 ring-white/10"
+                />
+                <CardTitle className="text-lg sm:text-2xl">
+                  {type1.nameCN}
+                </CardTitle>
+                <p className="text-sm text-zinc-500 font-mono">{type1.code}</p>
+                {(age1 || gender1) && (
+                  <p className="text-xs text-zinc-500 mt-1">
+                    {[genderLabel(gender1), age1 && `${age1} 岁`]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                )}
+              </CardHeader>
+            </Card>
+
+            {/* Score center */}
+            <div className="text-center px-1 sm:px-4">
+              <div className="text-5xl sm:text-7xl lg:text-8xl font-black mb-2 bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent leading-none">
+                {compat.scorePercent}%
+              </div>
+              <div
+                className={`inline-block px-3 sm:px-5 py-1.5 sm:py-2 rounded-full text-sm sm:text-xl font-bold border ${verdictCss}`}
+              >
+                {verdictLabel[compat.verdict]}
+              </div>
+              {city && (
+                <p className="text-[10px] sm:text-xs text-zinc-500 mt-2">
+                  基于 {city}
+                </p>
+              )}
             </div>
-            {city && (
-              <p className="text-xs text-zinc-500 mt-3">
-                基于 {city} 的配对分析
-              </p>
-            )}
+
+            {/* Type 2 */}
+            <Card
+              className="text-center"
+              style={{ borderColor: `${type2.color}55` }}
+            >
+              <CardHeader>
+                <TypePoster
+                  code={type2.code}
+                  nameCN={type2.nameCN}
+                  fallbackEmoji={type2.emoji}
+                  priority
+                  sizes="(max-width: 640px) 30vw, 140px"
+                  className="mx-auto mb-3 size-24 sm:size-32 rounded-2xl ring-1 ring-white/10"
+                />
+                <CardTitle className="text-lg sm:text-2xl">
+                  {type2.nameCN}
+                </CardTitle>
+                <p className="text-sm text-zinc-500 font-mono">{type2.code}</p>
+                {(age2 || gender2) && (
+                  <p className="text-xs text-zinc-500 mt-1">
+                    {[genderLabel(gender2), age2 && `${age2} 岁`]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                )}
+              </CardHeader>
+            </Card>
           </div>
 
-          {/* Summary — full width, above two-column */}
-          <Card className="mb-6 border-purple-500/30 bg-purple-500/5">
+          {/* Summary */}
+          <Card className="mb-8 border-purple-500/30 bg-purple-500/5">
             <CardContent className="p-6">
               <p className="text-base sm:text-lg text-zinc-200 leading-relaxed">
                 {compat.summaryCN}
               </p>
             </CardContent>
           </Card>
-        </div>
 
-        {/* ===== Two-column: Share Card (left) + Info Cards (right) ===== */}
-        <div className="relative mx-auto max-w-5xl px-4 sm:px-6 pb-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            {/* Left: Share card — sticky on desktop */}
-            <div className="lg:sticky lg:top-20 self-start">
-              <MatchShareSection
-                type1={{ code: type1.code, nameCN: type1.nameCN, emoji: type1.emoji, color: type1.color }}
-                type2={{ code: type2.code, nameCN: type2.nameCN, emoji: type2.emoji, color: type2.color }}
-                scorePercent={compat.scorePercent}
-                verdict={compat.verdict}
-                summary={compat.summaryCN}
-                roast={compat.shareableRoastCN}
-              />
-            </div>
+          {/* Share card — single row, centered */}
+          <MatchShareSection
+            type1={{ code: type1.code, nameCN: type1.nameCN, emoji: type1.emoji, color: type1.color }}
+            type2={{ code: type2.code, nameCN: type2.nameCN, emoji: type2.emoji, color: type2.color }}
+            scorePercent={compat.scorePercent}
+            verdict={compat.verdict}
+            summary={compat.summaryCN}
+            roast={compat.shareableRoastCN}
+          />
 
-            {/* Right: Info cards */}
-            <div className="space-y-6">
-              <PaywallGate
+          {/* Paywall content */}
+          <div className="mt-8">
+            <PaywallGate
                 productId={`match-${t1}-${t2}`}
                 headline="解锁完整配对报告"
                 description={`看看 ${type1.nameCN} 和 ${type2.nameCN} 最可能因为什么吵架、最适合一起做什么、怎样相处更长久`}
@@ -239,13 +255,10 @@ export default function MatchResultView() {
                   </CardContent>
                 </Card>
               </PaywallGate>
-            </div>
           </div>
-        </div>
 
-        {/* ===== CTAs ===== */}
-        <div className="relative mx-auto max-w-4xl px-4 sm:px-6 pb-12">
-          <div className="flex flex-wrap gap-4 justify-center pt-8">
+          {/* CTAs */}
+          <div className="flex flex-wrap gap-4 justify-center pt-8 pb-4">
             <Link href="/match">
               <Button variant="outline" size="lg">
                 再测一对
