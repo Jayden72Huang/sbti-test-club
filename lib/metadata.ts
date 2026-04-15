@@ -73,12 +73,17 @@ export function buildMetadata(opts: BuildMetadataOpts): Metadata {
   } = opts;
 
   const isHome = path === '/' || path === '';
-  const fullTitle = isHome ? title : `${title} | ${SITE_NAME}`;
+  // Layout template already appends " | SBTI Test Club" for non-home pages.
+  // Home page uses { absolute } to bypass the template and keep its own title.
+  const titleTag: string | { absolute: string } = isHome
+    ? { absolute: title }
+    : title;
+  const displayTitle = isHome ? title : `${title} | ${SITE_NAME}`;
   const canonical = `${SITE_URL}${isHome ? '' : path}` || SITE_URL;
   const image = toAbsolute(ogImage);
 
   return {
-    title: fullTitle,
+    title: titleTag,
     description,
     ...(keywords && keywords.length > 0 ? { keywords } : {}),
     robots: noIndex
@@ -101,7 +106,7 @@ export function buildMetadata(opts: BuildMetadataOpts): Metadata {
     openGraph: {
       type,
       url: canonical,
-      title: fullTitle,
+      title: displayTitle,
       description,
       siteName: SITE_NAME,
       locale: locale === 'en' ? 'en_US' : 'zh_CN',
@@ -110,13 +115,13 @@ export function buildMetadata(opts: BuildMetadataOpts): Metadata {
           url: image,
           width: 1200,
           height: 630,
-          alt: fullTitle,
+          alt: displayTitle,
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: fullTitle,
+      title: displayTitle,
       description,
       images: [image],
       site: SITE_TWITTER_HANDLE,

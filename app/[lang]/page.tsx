@@ -57,6 +57,14 @@ export const metadata: Metadata = buildMetadata({
     'free personality test',
     '在线性格测试',
     'MBTI 恶搞版',
+    // Traditional Chinese variants (GSC shows demand)
+    'SBTI 測試',
+    'SBTI 人格測試',
+    'SBTI 圖鑑',
+    '27種人格',
+    '人格測試',
+    '性格測試',
+    'SBTI 配對',
   ],
   locale: 'zh',
 });
@@ -85,6 +93,8 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       title: isEn ? 'SBTI Personality Test · 27 True Selves' : 'SBTI 人格测试 · 27 种真实自我',
       description: content.introSection,
       url: localePath('/', locale),
+      datePublished: '2026-04-10',
+      dateModified: '2026-04-14',
     }),
     faqPageSchema(faqs),
     breadcrumbSchema([{ name: isEn ? 'Home' : '首页', url: localePath('/', locale) }]),

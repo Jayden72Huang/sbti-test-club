@@ -48,7 +48,7 @@ export interface TypesPageContent {
 export const seoContent = {
   home: {
     zh: {
-      heroTitle: 'SBTI Test Club',
+      heroTitle: 'SBTI 沙雕人格测试',
       heroSubtitle: '免费 SBTI 沙雕人格测试 · 27 种扎心类型 · 情侣配对 · 3 分钟出结果',
       heroCTA: '立刻开始测试',
       introSection:
@@ -110,7 +110,7 @@ export const seoContent = {
       ctaBottom: '现在就开始测一下，看看你今天是 27 种 SBTI 里的哪一种。',
     },
     en: {
-      heroTitle: 'SBTI Test Club',
+      heroTitle: 'SBTI Personality Test',
       heroSubtitle: 'Free Silly Big Personality Test · 27 viral types · couple matcher · 3-minute result',
       heroCTA: 'Start the SBTI Test',
       introSection:
@@ -246,8 +246,8 @@ export const seoContent = {
 
   types: {
     zh: {
-      title: '27 种 SBTI 人格类型完整图鉴',
-      description: '完整的 27 种 SBTI 人格类型列表：CTRL、BOSS、DEAD、MALO、FUCK 等 25 种标准类型 + HHHH 兜底 + DRUNK 隐藏。每种类型都有深度解读、15 维度雷达图、配对建议和电影歌单推荐。',
+      title: '27 种 SBTI 人格类型完整图鉴（2026 最全）',
+      description: '你是 DEAD 还是 CTRL？2026 最全 SBTI 27 种人格图鉴：每种类型配 15 维雷达图 + 情侣配对 + 名人代表。找到你的扎心类型 →',
       heroTitle: '全部 27 种 SBTI 人格类型',
       heroSubtitle: '从 CTRL 到 DRUNK，这是 SBTI 的完整灵魂图鉴',
       intro:

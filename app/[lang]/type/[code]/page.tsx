@@ -205,6 +205,8 @@ export default async function TypeDetailPage({ params }: PageProps) {
       title: isEn ? type.seo.metaTitleEN : type.seo.metaTitleCN,
       description: isEn ? type.seo.metaDescEN : type.seo.metaDescCN,
       url: `/type/${type.slug}`,
+      datePublished: '2026-04-10',
+      dateModified: '2026-04-14',
     }),
     faqPageSchema(faqItems),
     breadcrumbSchema([

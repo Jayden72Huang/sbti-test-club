@@ -60,7 +60,9 @@ export function organizationSchema(): JsonLd {
       width: 1200,
       height: 630,
     },
-    sameAs: [],
+    sameAs: [
+      'https://x.com/sbtitestclub',
+    ],
   };
 }
 
@@ -146,6 +148,7 @@ export interface ArticleSchemaOpts {
   /** Absolute URL or path. */
   url: string;
   datePublished?: string;
+  dateModified?: string;
   author?: string;
 }
 
@@ -210,6 +213,7 @@ export function articleSchema(opts: ArticleSchemaOpts): JsonLd {
     description,
     url,
     datePublished,
+    dateModified,
     author = SITE_NAME,
   } = opts;
   const absoluteUrl = toAbsolute(url);
@@ -224,11 +228,32 @@ export function articleSchema(opts: ArticleSchemaOpts): JsonLd {
     },
     url: absoluteUrl,
     ...(datePublished ? { datePublished } : {}),
+    ...(dateModified ? { dateModified } : {}),
     author: {
       '@type': 'Organization',
       name: author,
       url: SITE_URL,
     },
     publisher: { '@id': `${SITE_URL}/#organization` },
+  };
+}
+
+/**
+ * Quiz schema for the /test page — helps AI engines and Google understand
+ * this is an interactive quiz/assessment tool.
+ */
+export function quizSchema(): JsonLd {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Quiz',
+    name: 'SBTI Personality Test — 31 Questions',
+    description:
+      'A 31-question personality quiz measuring 15 psychological dimensions across 5 groups (self, emotion, attitude, action, social) to match you with one of 27 SBTI personality types.',
+    educationalLevel: 'beginner',
+    about: {
+      '@type': 'Thing',
+      name: 'Personality Assessment',
+    },
+    provider: { '@id': `${SITE_URL}/#organization` },
   };
 }

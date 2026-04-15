@@ -63,12 +63,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  // L3 guide pages (long-form SEO articles).
+  // L3 guide pages (long-form SEO articles) — both zh and en.
   entries.push({
     url: `${SITE_URL}/guide`,
     lastModified: now,
     changeFrequency: 'weekly',
     priority: 0.9,
+  });
+  entries.push({
+    url: `${SITE_URL}/en/guide`,
+    lastModified: now,
+    changeFrequency: 'weekly',
+    priority: 0.81,
   });
   for (const g of guides) {
     entries.push({
@@ -76,6 +82,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(g.datePublished),
       changeFrequency: 'monthly',
       priority: 0.85,
+    });
+    entries.push({
+      url: `${SITE_URL}/en/guide/${g.slug}`,
+      lastModified: new Date(g.datePublished),
+      changeFrequency: 'monthly',
+      priority: 0.76,
     });
   }
 
@@ -85,6 +97,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
     changeFrequency: 'weekly',
     priority: 0.85,
+  });
+  entries.push({
+    url: `${SITE_URL}/en/match/all`,
+    lastModified: now,
+    changeFrequency: 'weekly',
+    priority: 0.76,
   });
 
   // Couple-pair pages: only the ~111 canonical pairs that have hand-written

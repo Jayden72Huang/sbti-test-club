@@ -39,6 +39,13 @@ export const metadata: Metadata = buildMetadata({
     'SBTI 全部类型',
     'SBTI types',
     '沙雕人格',
+    'SBTI 圖鑑',
+    'SBTI 人格圖鑑',
+    '27種人格',
+    'SBTI 全圖鑑',
+    'SBTI 人格分类',
+    'SBTI 所有类型',
+    'sbti全类型',
   ],
   locale: 'zh',
 });

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { buildMetadata } from '@/lib/metadata';
 import { type Locale } from '@/lib/i18n';
+import { quizSchema } from '@/lib/schema';
+import { SchemaJsonLd } from '@/components/shared/SchemaJsonLd';
 import TestClient from './TestClient';
 
 export const metadata: Metadata = buildMetadata({
@@ -22,5 +24,12 @@ export default async function TestPage({ params }: { params: Promise<{ lang: str
   const { lang } = await params;
   const locale = lang as Locale;
 
-  return <TestClient />;
+  return (
+    <>
+      {/* Server-rendered H1 for crawlers — hidden visually, visible to bots */}
+      <h1 className="sr-only">SBTI Test - 31 题沙雕人格测试</h1>
+      <SchemaJsonLd id="sbti-quiz-schema" schema={quizSchema()} />
+      <TestClient />
+    </>
+  );
 }
