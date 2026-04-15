@@ -92,13 +92,30 @@ export function Footer({
 
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-white">
-              {isEn ? 'Follow' : '社交'}
+              {isEn ? 'More Fun Tests' : '更多好玩测试'}
             </h3>
-            <div className="mt-4 flex gap-3">
-              <SocialIcon label="X / Twitter" href="#" icon="x" />
-              <SocialIcon label="Instagram" href="#" icon="ig" />
-              <SocialIcon label="Xiaohongshu" href="#" icon="xhs" />
-            </div>
+            <ul className="mt-4 flex flex-col gap-2 text-sm">
+              <li>
+                <a
+                  href="https://mylittleponytest.xyz"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-purple-300 transition-colors"
+                >
+                  🦄 {isEn ? 'My Little Pony Test' : '小马宝莉人格测试'}
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://datingstandardscalculator.pro"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-purple-300 transition-colors"
+                >
+                  💘 {isEn ? 'Dating Standards Calculator' : '约会标准计算器'}
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
 
